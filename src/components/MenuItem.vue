@@ -1,8 +1,7 @@
 <template>
   <div>
-    <!-- Si tiene hijos -->
     <v-list-group
-      v-if="item.children && item.children.length"
+      v-if="tieneHijos(item)"
       :value="item.id"
     >
       <template #activator="{ props }">
@@ -20,22 +19,25 @@
       />
     </v-list-group>
 
-    <!-- Si no tiene hijos -->
     <v-list-item
       v-else
       :prepend-icon="item.icon || 'mdi-file-document-outline'"
       :title="item.title"
-      :to="item.path"
+      :to="esRutaValida(item) ? item.path : undefined"
+      :link="esRutaValida(item)"
       rounded="lg"
     />
   </div>
 </template>
 
 <script setup>
-defineProps({
+const props = defineProps({
   item: {
     type: Object,
     required: true
   }
 })
+
+const tieneHijos = (item) => Array.isArray(item.children) && item.children.length > 0
+const esRutaValida = (item) => item.id_menu === 3 && !!item.path
 </script>

@@ -25,20 +25,18 @@
 
             <div class="text-body-1 text-medium-emphasis d-flex align-center justify-space-between mb-1">
               Password
-              <router-link to="/forgot-password" class="text-body-2 text-decoration-none text-blue">
-                Reiniciar password?
-              </router-link>
             </div>
 
             <v-text-field v-model="password" :append-inner-icon="visible ? 'mdi-eye-off' : 'mdi-eye'"
               :type="visible ? 'text' : 'password'" density="compact" placeholder="Ingrese password"
               prepend-inner-icon="mdi-lock-outline" variant="outlined" autocomplete="current-password"
               @click:append-inner="visible = !visible" />
-
-            <v-btn type="submit" color="primary" block>
-              Ingresar
-            </v-btn>
-
+              <div class="text-body-1 text-medium-emphasis d-flex align-center justify-space-between mb-1">
+              
+              <router-link to="/forgot-password" class="text-body-2 text-decoration-none text-blue">
+                Reiniciar password?
+              </router-link>
+            </div>
           </v-form>
 
           <v-card class="mb-8" color="surface-variant" variant="tonal">
