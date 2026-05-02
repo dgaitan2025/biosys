@@ -39,7 +39,7 @@
         <v-menu min-width="200px" class="mr-4">
           <template #activator="{ props }">
             <v-btn icon v-bind="props" class="mr-4">
-              <v-avatar size="60">
+              <v-avatar size="50">
                 <v-img :src="imagenUsuario" />
               </v-avatar>
             </v-btn>
@@ -84,12 +84,15 @@ const drawer = ref(false)
 const opened = ref([])
 
 const user = computed(() => (
-  { fullName: authStore.user, 
-    rol: authStore.rol, 
-    foto: authStore.fotografia }))
+  {
+    fullName: authStore.user,
+    rol: authStore.rol,
+    foto: authStore.fotografia
+  }))
 
+  const imagenDefault = ref('/logo.png')
 
-    const imagenUsuario = computed(() => {
+const imagenUsuario = computed(() => {
   return user.value.foto
     ? `data:image/png;base64,${user.value.foto}`
     : imagenDefault.value

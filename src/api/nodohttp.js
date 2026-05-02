@@ -4,7 +4,7 @@ import { endpoints } from './endpoints'
 import router from '../router'
 
 const http = axios.create({
-  baseURL: 'https://enrolamiento-production.up.railway.app',
+  baseURL: 'http://localhost:5224',
   timeout: 30000,
   headers: {
     'Content-Type': 'application/json'
@@ -12,7 +12,15 @@ const http = axios.create({
 })
 
 const httpcat = axios.create({
-  baseURL: 'https://catalogosbiosys-production.up.railway.app',
+  baseURL: 'http://localhost:5041',
+  timeout: 30000,
+  headers: {
+    'Content-Type': 'application/json'
+  }
+})
+
+const httpsol = axios.create({
+  baseURL: 'http://localhost:5041',
   timeout: 30000,
   headers: {
     'Content-Type': 'application/json'
@@ -20,14 +28,13 @@ const httpcat = axios.create({
 })
 
 const refreshClient = axios.create({
-  baseURL: 'https://enrolamiento-production.up.railway.app',
+  baseURL: 'http://localhost:5224',
   timeout: 30000,
   headers: {
     'Content-Type': 'application/json'
   }
 })
 
-// evita múltiples refresh simultáneos
 let refreshPromise = null
 
 const tokenExpirado = (token) => {
@@ -59,23 +66,26 @@ const renovarToken = async () => {
   }
 
   if (!refreshPromise) {
-    refreshPromise = refreshClient
-      .post(endpoints.auth.refresh, {
-        refreshToken: authStore.refreshToken
-      })
-      .then((res) => {
+    refreshPromise = (async () => {
+      try {
+        const res = await refreshClient.post(endpoints.auth.refresh, {
+          refreshToken: authStore.refreshToken
+        })
+
         const newToken = res?.data?.data?.accessToken
 
         if (!newToken) {
-          throw new Error('No se recibió un nuevo accessToken')
+          console.error('Refresh falló: no se recibió accessToken')
+          await cerrarSesion()
+          throw new Error('Sesión expirada')
         }
 
         authStore.updateAccessToken(newToken)
         return newToken
-      })
-      .finally(() => {
+      } finally {
         refreshPromise = null
-      })
+      }
+    })()
   }
 
   return await refreshPromise
@@ -97,6 +107,53 @@ const asegurarSesion = async () => {
   return await renovarToken()
 }
 
+const agregarTokenARequest = async (config) => {
+  const token = await asegurarSesion()
+
+  config.headers = config.headers || {}
+  config.headers.Authorization = `Bearer ${token}`
+
+  console.log('URL:', `${config.baseURL || ''}${config.url || ''}`)
+  console.log('TOKEN ENVIADO:', token)
+  console.log('HEADERS:', config.headers)
+
+  return config
+}
+
+const manejarErrorAutenticacion = async (error, clienteAxios) => {
+  const originalRequest = error.config
+
+  if (!error.response) {
+    return Promise.reject(error)
+  }
+
+  const status = error.response.status
+  const isRefreshRequest = originalRequest?.url?.includes('/seguridad/api/auth/refresh')
+
+  if (status === 401 && isRefreshRequest) {
+    await cerrarSesion()
+    return Promise.reject(error)
+  }
+
+  if (status === 401 && !originalRequest._retry) {
+    originalRequest._retry = true
+
+    try {
+      const newToken = await renovarToken()
+
+      originalRequest.headers = originalRequest.headers || {}
+      originalRequest.headers.Authorization = `Bearer ${newToken}`
+
+      return clienteAxios(originalRequest)
+    } catch (err) {
+      await cerrarSesion()
+      return Promise.reject(err)
+    }
+  }
+
+  return Promise.reject(error)
+}
+
 /* =========================
    INTERCEPTOR REQUEST HTTP
    ========================= */
@@ -107,7 +164,8 @@ http.interceptors.request.use(
 
     const rutasPublicas = [
       '/seguridad/api/auth/login',
-      '/seguridad/api/auth/refresh'
+      '/seguridad/api/auth/refresh',
+      '/seguridad/api/auth/logout'
     ]
 
     const esPublica = rutasPublicas.some((ruta) =>
@@ -138,51 +196,40 @@ http.interceptors.request.use(
    ========================== */
 http.interceptors.response.use(
   (response) => response,
-  async (error) => {
-    const originalRequest = error.config
-
-    if (!error.response) {
-      return Promise.reject(error)
-    }
-
-    const status = error.response.status
-    const isRefreshRequest = originalRequest?.url?.includes('/seguridad/api/auth/refresh')
-
-    if (status === 401 && isRefreshRequest) {
-      await cerrarSesion()
-      return Promise.reject(error)
-    }
-
-    if (status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true
-
-      try {
-        const newToken = await renovarToken()
-
-        originalRequest.headers = originalRequest.headers || {}
-        originalRequest.headers.Authorization = `Bearer ${newToken}`
-
-        return http(originalRequest)
-      } catch (err) {
-        await cerrarSesion()
-        return Promise.reject(err)
-      }
-    }
-
-    return Promise.reject(error)
-  }
+  (error) => manejarErrorAutenticacion(error, http)
 )
 
 /* =============================
    INTERCEPTOR REQUEST HTTPCAT
    ============================= */
 httpcat.interceptors.request.use(
-  async (config) => {
-    await asegurarSesion()
-    return config
-  },
+  agregarTokenARequest,
   (error) => Promise.reject(error)
 )
 
-export { http, httpcat }
+/* ==============================
+   INTERCEPTOR RESPONSE HTTPCAT
+   ============================== */
+httpcat.interceptors.response.use(
+  (response) => response,
+  (error) => manejarErrorAutenticacion(error, httpcat)
+)
+
+/* =============================
+   INTERCEPTOR REQUEST HTTPSOL
+   ============================= */
+httpsol.interceptors.request.use(
+  agregarTokenARequest,
+  (error) => Promise.reject(error)
+)
+
+/* ==============================
+   INTERCEPTOR RESPONSE HTTPSOL
+   ============================== */
+httpsol.interceptors.response.use(
+  (response) => response,
+  (error) => manejarErrorAutenticacion(error, httpsol)
+)
+
+export { http, httpcat, httpsol }
 export default http

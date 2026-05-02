@@ -5,6 +5,9 @@ import UsuariosView from '../views/usuarios/UsuariosView.vue'
 import { useAuthStore } from '../stores/auth'
 import UsuariosHome from '../views/usuarios/UsuariosHome.vue'
 import crud from '../views/usuarios/crud.vue'
+import solicitudInscripcion from '../views/formularios/solicitudInscripcion.vue'
+import AprobacionSolicitud from '../views/formularios/AprobacionSolicitud.vue'
+import ResumenSolicitudes from '../views/dashboard/solicitudes.vue'
 
 const routes = [
   {
@@ -27,9 +30,22 @@ const routes = [
         name: 'menu',
         component: UsuariosHome
       },{
-        path: '/usuarios/catalogos/ubicaciones/departamentos',
+        path: '/catalogos/ubicaciones/departamentos',
         name: 'crud',
         component: crud
+      },{
+        path: '/afiliados/inscripcion',
+        name: 'Inscripcion',
+        component: solicitudInscripcion
+      },{
+        path: '/afiliados/aprobacion_solicitud',
+        name: 'AprobacionSolicitud',
+        component: AprobacionSolicitud
+      },
+      {
+        path: '/afiliados/estadisticas_solicitudes',
+        name: 'ResumenSolicitudes',
+        component: ResumenSolicitudes
       },
 
     ],

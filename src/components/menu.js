@@ -192,32 +192,34 @@ export function useMenu() {
     await cargarMenu()
   }
 
-  const seleccionarItem = (item) => {
-    if (tieneHijos(item)) {
-      historial.value.push({
-        titulo: tituloNivelActual.value || obtenerTituloBase(),
-        items: itemsActuales.value,
-        path: new URL(window.location).searchParams.get('menu') || ''
-      })
+const seleccionarItem = (item) => {
+  if (tieneHijos(item)) {
+    historial.value.push({
+      titulo: tituloNivelActual.value || obtenerTituloBase(),
+      items: itemsActuales.value,
+      path: new URL(window.location).searchParams.get('menu') || ''
+    })
 
-      itemsActuales.value = item.children
-      tituloNivelActual.value = item.title || 'Módulos'
-      actualizarURL(item.path || '')
-      return
-    }
-
-    if (!esRutaValida(item)) return
-
-    actualizarURL(item.path)
-
-    if (item.path) {
-      const ruta = item.path.startsWith('/')
-        ? `/usuarios${item.path}`
-        : `/usuarios/${item.path}`
-
-      router.push(ruta)
-    }
+    itemsActuales.value = item.children
+    tituloNivelActual.value = item.title || 'Módulos'
+    actualizarURL(item.path || '')
+    return
   }
+
+  if (!esRutaValida(item)) return
+
+  actualizarURL(item.path)
+
+  if (item.path) {
+    let ruta = item.path
+
+    if (!ruta.startsWith('/')) {
+      ruta = `/usuarios/${ruta}`
+    }
+
+    router.push(ruta)
+  }
+}
 
   const volverNivel = () => {
     const anterior = historial.value.pop()

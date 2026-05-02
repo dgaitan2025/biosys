@@ -4,8 +4,14 @@ import { useRouter } from 'vue-router'
 import http from '../../api/nodohttp'
 import { endpoints } from '../../api/endpoints'
 import { useAuthStore } from '../../stores/auth'
+import { alertLoading, closeAlert, useAlert } from '../../utils/useAlert'
+
+
+
+
 
 export function useLogin() {
+  const { success, error, confirm } = useAlert()
   const { smAndDown } = useDisplay()
   const router = useRouter()
   const authStore = useAuthStore()
@@ -18,6 +24,7 @@ export function useLogin() {
 
   const handleLogin = async () => {
   try {
+    alertLoading('Iniciando sesión', 'Validando sus credenciales')
     loading.value = true
 
     const response = await http.post(endpoints.auth.login, {
@@ -31,14 +38,17 @@ export function useLogin() {
 
     const token = response?.data?.data?.accessToken
     const data = response?.data?.data
+    const mensaje = response?.data?.mensaje
+    
 
-
+    closeAlert()
 
     if (!token) {
-      alert('Credenciales inválidas')
+      error(mensaje || 'Error al iniciar sesión')
       return
     }
-
+    console.log("DATA", data);
+    success(`Bienvenido a BioSys ${data.nickname}`);
     // guardar token
     
     authStore.setAuthData(data)
@@ -46,7 +56,8 @@ export function useLogin() {
     router.push('/usuarios')
 
   } catch (error) {
-    alert('Error al iniciar sesión')
+    error('valide conexión e intente de nuevo')
+    
   } finally {
     loading.value = false
   }
