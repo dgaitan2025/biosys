@@ -12,7 +12,7 @@ export const endpoints = {
     actualizarDepartamento: '/api/departamento/ActualizarDepartamento',
     catalogosSolicitud: '/biosys/api/gestion_afiliados/Solicitud/catalogos'
 
-    
+
   },
   solicitudes: {
     consultar: '/biosys/api/gestion_afiliados/Solicitud/consultar',
@@ -21,9 +21,17 @@ export const endpoints = {
     eliminar: '/biosys/api/gestion_afiliados/Solicitud/eliminar',
     aprobar: '/biosys/api/gestion_afiliados/Solicitud/aprobar',
     rechazar: '/biosys/api/gestion_afiliados/Solicitud/rechazar',
-    resumen: '/biosys/api/gestion_afiliados/Solicitud/consultar_estadistico'
+    resumen: '/biosys/api/gestion_afiliados/Solicitud/consultar_estadistico',
+    huella: '/api/BiometriaAfiliado/consultar-huella',
+    segmentarRostro: '/api/BiometriaAfiliado/segmentar-biometria',
+    validarRostro: '/api/BiometriaAfiliado/verificar-biometria'
+
+  }, biometriahuella: {
+    enrolar: '/api/huella/capturar',
+    verificar: '/api/huella/verificar'
 
   },
+
 
   usuarios: '/seguridad/api/acceso/permiso'
 }

@@ -11,6 +11,14 @@ const http = axios.create({
   }
 })
 
+const httpshuella = axios.create({
+  baseURL: 'https://localhost:5055',
+  timeout: 180000,
+  headers: {
+    'Content-Type': 'application/json'
+  }
+})
+
 const httpcat = axios.create({
   baseURL: 'http://localhost:5041',
   timeout: 30000,
@@ -231,5 +239,5 @@ httpsol.interceptors.response.use(
   (error) => manejarErrorAutenticacion(error, httpsol)
 )
 
-export { http, httpcat, httpsol }
+export { http, httpcat, httpsol, httpshuella }
 export default http

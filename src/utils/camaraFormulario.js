@@ -1,4 +1,9 @@
 // src/utils/camaraFormulario.js
+import { httpcat } from '../api/nodohttp'
+import { endpoints } from '../api/endpoints'
+import { alertLoading, closeAlert, useAlert } from '../utils/useAlert'
+
+const { success, error, confirm } = useAlert()
 
 export const listarCamaras = async ({
     camarasDisponibles,
@@ -91,12 +96,14 @@ export const cambiarCamara = async ({
     })
 }
 
-export const tomarFoto = ({
+export const tomarFoto = async ({
     videoRef,
     canvasRef,
     form,
     campo = 'fotografia'
 }) => {
+
+    alertLoading('Segmentando rostro, por favor espere...')
     const video = videoRef.value
     const canvas = canvasRef.value
 
@@ -111,9 +118,34 @@ export const tomarFoto = ({
     context.drawImage(video, 0, 0, canvas.width, canvas.height)
 
     const imagenBase64 = canvas.toDataURL('image/jpeg', 0.9)
-    form.value.enrolamientos[0].imagen = imagenBase64
+    try {
 
-    form.value[campo] = imagenBase64
+        const payloadBiometria = {
+            rostro: imagenBase64.replace('data:image/jpeg;base64,', '')
+        }
+
+        const responseBiometria = await httpcat.post(
+            endpoints.solicitudes.segmentarRostro,
+            payloadBiometria
+        )
+
+        console.log('Respuesta segmentación biométrica:', responseBiometria.data)
+
+        form.value.enrolamientos[0].imagen = responseBiometria.data.rostro
+        console.log('Fotografía guardada en el formulario:', form.value.enrolamientos[0].imagen)
+
+        form.value[campo] = `data:image/jpeg;base64,${responseBiometria.data.rostro}`
+
+
+    } catch (error) {
+
+        error('Error al procesar la fotografía:', error)
+
+    }
+    closeAlert()
+
+    success('Fotografía capturada correctamente')
+
 
     return imagenBase64
 }

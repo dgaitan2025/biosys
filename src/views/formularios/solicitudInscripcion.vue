@@ -5,14 +5,14 @@
                 {{ modo === 'crear' ? 'Nueva Solicitud' : `Editar Solicitud #${form.id}` }}
             </span>
             <v-col cols="6" md="2" class="text-md-right">
-            <v-btn color="primary" prepend-icon="mdi-home" @click="volverInicio">
-                Inicio
-            </v-btn>
-        </v-col>
+                <v-btn color="primary" prepend-icon="mdi-home" @click="volverInicio">
+                    Inicio
+                </v-btn>
+            </v-col>
 
         </v-card-title>
 
-        
+
         <v-divider />
 
         <v-form ref="formRef">
@@ -433,12 +433,6 @@
             <v-divider />
 
             <v-card-text>
-                <v-alert type="info" variant="tonal" class="mb-4">
-                    Seleccione el dedo que se va a capturar antes de iniciar la lectura.
-                </v-alert>
-
-                <v-select v-model="dedoSeleccionado" :items="dedosHuella" item-title="nombre" item-value="id"
-                    label="Dedo a capturar" variant="outlined" prepend-inner-icon="mdi-fingerprint" class="mb-4" />
 
                 <CapturaHuella :dedo="dedoSeleccionado" @huellaCapturada="guardarHuella" />
             </v-card-text>
@@ -577,78 +571,86 @@ const seleccionarFechaNacimiento = (fecha) => {
 
 const fotoFile = ref(null)
 
-const guardarHuella = (data) => {
-    try {
-        console.log('Huella recibida desde componente:', data)
+const guardarHuella = (fingerprints) => {
+  try {
+    console.log('Huellas recibidas desde componente:', fingerprints)
 
-        if (!data) {
-            error('No se recibió información de la huella')
-            return
-        }
-
-        if (!dedoSeleccionado.value) {
-            error('Debe seleccionar el dedo antes de capturar la huella')
-            return
-        }
-
-        let huellaBase64 = ''
-
-        // Si el componente ya manda base64
-        if (typeof data === 'string') {
-            huellaBase64 = data
-        }
-        // Si el componente manda un objeto con muestras
-        else {
-            huellaBase64 = convertirJsonABase64(data)
-        }
-
-        if (!form.value.enrolamientos) {
-            form.value.enrolamientos = []
-        }
-
-        const dedo = dedosHuella.find(x => x.id === dedoSeleccionado.value)
-
-        const nuevoEnrolamiento = {
-            id: 0,
-
-            // Si tu API espera número, cambia esto por el id numérico correspondiente
-            id_caracteristica: dedoSeleccionado.value,
-
-            probatorio: huellaBase64,
-            imagen: huellaBase64,
-            plantilla: huellaBase64,
-            thumnail: huellaBase64,
-            observaciones: dedo ? `Huella ${dedo.nombre}` : 'Huella capturada'
-        }
-
-        const index = form.value.enrolamientos.findIndex(
-            x => x.id_caracteristica === dedoSeleccionado.value
-        )
-
-        if (index >= 0) {
-            form.value.enrolamientos[index] = nuevoEnrolamiento
-        } else {
-            form.value.enrolamientos.push(nuevoEnrolamiento)
-        }
-
-        // Para que el texto de la tarjeta diga "Huella capturada correctamente"
-        form.value.huella = huellaBase64
-
-        dialogHuella.value = false
-
-        success('Huella capturada correctamente')
-
-        console.log('Enrolamientos actualizados:', form.value.enrolamientos)
-        console.log('Huella guardada en imagen:', form.value.enrolamientos[index >= 0 ? index : form.value.enrolamientos.length - 1].imagen)
-
-    } catch (err) {
-        console.error('Error al guardar huella:', err)
-        error('Error al guardar la huella capturada')
+    if (!Array.isArray(fingerprints) || fingerprints.length === 0) {
+      error('No se recibió información de la huella')
+      return
     }
+
+    limpiarSoloHuellas()
+
+    if (!form.value.enrolamientos) {
+      form.value.enrolamientos = []
+    }
+
+    fingerprints.forEach((item) => {
+      const huellaBase64 = item.templateBase64
+
+      if (!huellaBase64) return
+
+      const nuevoEnrolamiento = {
+        id: 0,
+        id_caracteristica: item.finger,
+        probatorio: huellaBase64,
+        imagen: huellaBase64,
+        plantilla: huellaBase64,
+        thumnail: huellaBase64,
+        observaciones: `Huella dedo ${item.finger}`
+      }
+
+      const index = form.value.enrolamientos.findIndex(
+        x => x.id_caracteristica === item.finger
+      )
+
+      if (index >= 0) {
+        form.value.enrolamientos[index] = nuevoEnrolamiento
+      } else {
+        form.value.enrolamientos.push(nuevoEnrolamiento)
+      }
+    })
+
+    form.value.huella = fingerprints[0].templateBase64
+    form.value.enrolado = 1
+
+    dialogHuella.value = false
+
+    success(`Se guardaron ${fingerprints.length} huellas correctamente`)
+  } catch (err) {
+    console.error('Error al guardar huellas:', err)
+    error('Error al guardar las huellas capturadas')
+  }
 }
 
+const limpiarSoloHuellas = () => {
+  const idsDedos = dedosHuella.map(x => x.id)
+
+  form.value.enrolamientos = form.value.enrolamientos.filter(
+    x => !idsDedos.includes(x.id_caracteristica)
+  )
+
+  form.value.huella = null
+  form.value.enrolado = 0
+}
+
+const dedosHuella = [
+  { id: 1, nombre: 'Índice derecho' },
+  { id: 2, nombre: 'Índice izquierdo' },
+  { id: 3, nombre: 'Índice derecho' },
+  { id: 4, nombre: 'Índice izquierdo' },
+  { id: 5, nombre: 'Índice derecho' },
+  { id: 6, nombre: 'Índice izquierdo' },
+  { id: 7, nombre: 'Índice derecho' },
+  { id: 8, nombre: 'Índice izquierdo' },
+  { id: 9, nombre: 'Índice derecho' },
+  { id: 10, nombre: 'Índice izquierdo' },
+
+]
+
 function volverInicio() {
-  router.push('/usuarios')
+    router.push('/usuarios')
 }
 
 const capturarHuella = () => {
@@ -754,7 +756,7 @@ const getInitialForm = () => ({
 
         {
             id: 0,
-            id_caracteristica: 3,
+            id_caracteristica: 11,
             probatorio: "base64_probatorio_3",
             imagen: "base64_imagen_3",
             plantilla: "base64_plantilla_3",
@@ -765,18 +767,7 @@ const getInitialForm = () => ({
 })
 
 const dedoSeleccionado = ref(1)
-const dedosHuella = [
-    //{ id: 'pulgar_derecho', nombre: 'Pulgar derecho' },
-    { id: 1, nombre: 'Índice derecho' },
-    // { id: 'medio_derecho', nombre: 'Medio derecho' },
-    //{ id: 'anular_derecho', nombre: 'Anular derecho' },
-    //{ id: 'menique_derecho', nombre: 'Meñique derecho' },
-    //{ id: 'pulgar_izquierdo', nombre: 'Pulgar izquierdo' },
-    { id: 2, nombre: 'Índice izquierdo' },
-    //{ id: 'medio_izquierdo', nombre: 'Medio izquierdo' },
-    //{ id: 'anular_izquierdo', nombre: 'Anular izquierdo' },
-    //{ id: 'menique_izquierdo', nombre: 'Meñique izquierdo' }
-]
+
 
 const form = ref(getInitialForm())
 
@@ -994,7 +985,7 @@ const tomarFoto = () => {
         })
 
         cerrarCamara()
-        success('Fotografía capturada correctamente')
+        
     } catch (err) {
         console.error('Error al tomar fotografía:', err)
         error('No se pudo capturar la fotografía')
@@ -1032,5 +1023,25 @@ const convertirJsonABase64 = (data) => {
 
 .border-primary {
     border-color: rgb(var(--v-theme-primary)) !important;
+}
+
+.camera-container {
+  width: 100%;
+  max-width: 100%;
+  height: 320px;
+  overflow: hidden;
+  border-radius: 16px;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.camera-video {
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  object-fit: cover;
+  display: block;
 }
 </style>

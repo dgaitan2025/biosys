@@ -1,6 +1,6 @@
 <template>
   <v-container fluid class="pa-6">
-    <v-card elevation="4" rounded="xl">
+    
       <v-card-title class="d-flex align-center justify-space-between">
         <div>
           <h2 class="text-h5 font-weight-bold">Aprobación de solicitudes</h2>
@@ -68,7 +68,7 @@
           </template>
         </v-data-table>
       </v-card-text>
-    </v-card>
+    
 
     <!-- Modal de detalle -->
     <v-dialog v-model="dialogDetalle" max-width="950">
@@ -182,7 +182,7 @@
 
           <v-btn color="success" variant="flat"
             :disabled="!validacionActual.ok || !puedeGestionarse(solicitudSeleccionada)"
-            @click="confirmarAprobacion(solicitudSeleccionada)">
+            @click="confirmarAprobacion(solicitudSeleccionada)" >
             Aprobar
           </v-btn>
 
@@ -227,6 +227,7 @@ import { httpcat, httpsol } from '../../api/nodohttp'
 import { endpoints } from '../../api/endpoints'
 import axios from 'axios'
 import Swal from 'sweetalert2'
+import { alertLoading, closeAlert, useAlert } from '../../utils/useAlert'
 
 const API_BASE = 'http://localhost:5041/biosys/api/gestion_afiliados/Solicitud'
 
@@ -477,6 +478,7 @@ function solicitudCompleta(item) {
 
 async function confirmarAprobacion(item) {
   if (!item) return
+  dialogDetalle.value = false
 
   const validacion = solicitudCompleta(item)
 
@@ -512,6 +514,8 @@ async function confirmarAprobacion(item) {
 
 async function aprobarSolicitud(item) {
   try {
+
+    alertLoading("APROBANDO SOLICITUD")
     procesando.value = true
 
     const payload = {
@@ -530,6 +534,7 @@ async function aprobarSolicitud(item) {
     )
 
     if (response.data.resultado === 200) {
+      closeAlert()
       Swal.fire('Aprobada', response.data.mensaje || 'La solicitud fue aprobada correctamente.', 'success')
       dialogDetalle.value = false
       await consultarSolicitudes()

@@ -8,6 +8,8 @@ import crud from '../views/usuarios/crud.vue'
 import solicitudInscripcion from '../views/formularios/solicitudInscripcion.vue'
 import AprobacionSolicitud from '../views/formularios/AprobacionSolicitud.vue'
 import ResumenSolicitudes from '../views/dashboard/solicitudes.vue'
+import Validacionhuella from '../views/formularios/validacionBiometrica.vue'
+import ValidacionRostro from '../views/formularios/biometriaRostro.vue'
 
 const routes = [
   {
@@ -46,6 +48,16 @@ const routes = [
         path: '/afiliados/estadisticas_solicitudes',
         name: 'ResumenSolicitudes',
         component: ResumenSolicitudes
+      },
+      {
+        path: '/biometria/verificacion_huella',
+        name: 'Validacionhuella',
+        component: Validacionhuella
+      },
+      {
+        path: '/biometria/verificacion_rostro',
+        name: 'Validacionrostro',
+        component: ValidacionRostro
       },
 
     ],
