@@ -3,6 +3,7 @@ import { httpcat } from '../api/nodohttp'
 import { endpoints } from '../api/endpoints'
 import { alertLoading, closeAlert, useAlert } from '../utils/useAlert'
 
+
 const { success, error, confirm } = useAlert()
 
 export const listarCamaras = async ({
@@ -100,25 +101,29 @@ export const tomarFoto = async ({
     videoRef,
     canvasRef,
     form,
-    campo = 'fotografia'
+    campo = 'fotografia',
+    origen = null,
+
 }) => {
-
     alertLoading('Segmentando rostro, por favor espere...')
-    const video = videoRef.value
-    const canvas = canvasRef.value
 
-    if (!video || !canvas) {
-        throw new Error('No se pudo capturar la fotografía')
-    }
-
-    canvas.width = video.videoWidth
-    canvas.height = video.videoHeight
-
-    const context = canvas.getContext('2d')
-    context.drawImage(video, 0, 0, canvas.width, canvas.height)
-
-    const imagenBase64 = canvas.toDataURL('image/jpeg', 0.9)
     try {
+        const video = videoRef.value
+        const canvas = canvasRef.value
+
+        if (!video || !canvas) {
+            throw new Error('No se pudo capturar la fotografía')
+        }
+
+        canvas.width = video.videoWidth
+        canvas.height = video.videoHeight
+
+        const context = canvas.getContext('2d')
+        context.drawImage(video, 0, 0, canvas.width, canvas.height)
+
+        const imagenBase64 = canvas.toDataURL('image/jpeg', 0.9)
+
+
 
         const payloadBiometria = {
             rostro: imagenBase64.replace('data:image/jpeg;base64,', '')
@@ -131,23 +136,36 @@ export const tomarFoto = async ({
 
         console.log('Respuesta segmentación biométrica:', responseBiometria.data)
 
+        if (!responseBiometria.data?.rostro) {
+            throw new Error(
+                responseBiometria.data?.mensaje ||
+                'No se detectó un rostro en la fotografía'
+            )
+        }
+
         form.value.enrolamientos[0].imagen = responseBiometria.data.rostro
-        console.log('Fotografía guardada en el formulario:', form.value.enrolamientos[0].imagen)
+
+        if (origen === 'asistencia') {
+            
+        }
 
         form.value[campo] = `data:image/jpeg;base64,${responseBiometria.data.rostro}`
 
+        success('Fotografía capturada correctamente')
 
-    } catch (error) {
+        return imagenBase64
+    } catch (err) {
+        console.error('Error al procesar la fotografía:', err)
 
-        error('Error al procesar la fotografía:', error)
+        error(
+            err.response?.data?.mensaje ||
+            err.response?.data?.message ||
+            err.message ||
+            'Error al procesar la fotografía'
+        )
 
+        return null
     }
-    closeAlert()
-
-    success('Fotografía capturada correctamente')
-
-
-    return imagenBase64
 }
 
 export const cerrarCamara = ({

@@ -24,8 +24,8 @@ export const validarNumeroDocumento = (valor) => {
         return 'El número de DPI/CUI no es válido'
     }else {
 
-            console.log('Departamento:', resultado.departamento)
-            console.log('Municipio:', resultado.municipio)
+            //console.log('Departamento:', resultado.departamento)
+            //console.log('Municipio:', resultado.municipio)
             mensajeCui.value = `CUI válido: ${resultado.departamento}, ${resultado.municipio}`
 
         return true

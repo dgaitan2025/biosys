@@ -4,8 +4,8 @@ import { endpoints } from './endpoints'
 import router from '../router'
 
 const http = axios.create({
-  baseURL: 'http://localhost:5224',
-  timeout: 30000,
+  baseURL: 'https://biosyssecure.onrender.com',
+  timeout: 90000,
   headers: {
     'Content-Type': 'application/json'
   }
@@ -20,24 +20,24 @@ const httpshuella = axios.create({
 })
 
 const httpcat = axios.create({
-  baseURL: 'http://localhost:5041',
-  timeout: 30000,
+  baseURL: 'https://biosyssol.onrender.com',
+  timeout: 90000,
   headers: {
     'Content-Type': 'application/json'
   }
 })
 
 const httpsol = axios.create({
-  baseURL: 'http://localhost:5041',
-  timeout: 30000,
+  baseURL: 'https://biosyssol.onrender.com',
+  timeout: 90000,
   headers: {
     'Content-Type': 'application/json'
   }
 })
 
 const refreshClient = axios.create({
-  baseURL: 'http://localhost:5224',
-  timeout: 30000,
+  baseURL: 'https://biosyssecure.onrender.com',
+  timeout: 90000,
   headers: {
     'Content-Type': 'application/json'
   }

@@ -5,11 +5,15 @@ import UsuariosView from '../views/usuarios/UsuariosView.vue'
 import { useAuthStore } from '../stores/auth'
 import UsuariosHome from '../views/usuarios/UsuariosHome.vue'
 import crud from '../views/usuarios/crud.vue'
-import solicitudInscripcion from '../views/formularios/solicitudInscripcion.vue'
+import solicitudInscripcion from '../views/Menus/solicitudInscripcion.vue'
 import AprobacionSolicitud from '../views/formularios/AprobacionSolicitud.vue'
 import ResumenSolicitudes from '../views/dashboard/solicitudes.vue'
 import Validacionhuella from '../views/formularios/validacionBiometrica.vue'
 import ValidacionRostro from '../views/formularios/biometriaRostro.vue'
+import GestionEventos from '../views/formularios/CrearEvento.vue'
+import RegistrarAsistencia from '../views/formularios/RegistrarAsistencia.vue'
+import ConsultaRENAP from '../views/formularios/RenapConsulta.vue'
+import ReporteGenerico from '../views/formularios/ReporteGenerico.vue'
 
 const routes = [
   {
@@ -31,15 +35,15 @@ const routes = [
         path: '',
         name: 'menu',
         component: UsuariosHome
-      },{
+      }, {
         path: '/catalogos/ubicaciones/departamentos',
         name: 'crud',
         component: crud
-      },{
+      }, {
         path: '/afiliados/inscripcion',
         name: 'Inscripcion',
         component: solicitudInscripcion
-      },{
+      }, {
         path: '/afiliados/aprobacion_solicitud',
         name: 'AprobacionSolicitud',
         component: AprobacionSolicitud
@@ -59,6 +63,26 @@ const routes = [
         name: 'Validacionrostro',
         component: ValidacionRostro
       },
+      {
+        path: '/eventos/gestion_eventos',
+        name: 'GestionEventos',
+        component: GestionEventos
+      },
+      {
+        path: '/eventos/registro_asistencia',
+        name: 'RegistroAsistencia',
+        component: RegistrarAsistencia
+      },
+      {
+        path: '/renap/consulta',
+        name: 'ConsultaRENAP',
+        component: ConsultaRENAP
+      },
+      {
+        path: '/reportes/:tipo',
+        name: 'ReporteGenerico',
+        component: ReporteGenerico
+      }
 
     ],
     meta: { requiresAuth: true }
