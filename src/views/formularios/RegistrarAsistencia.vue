@@ -311,6 +311,10 @@
             <v-divider />
 
             <v-card-text class="pa-5">
+                <v-select v-model="camaraQrSeleccionada" :items="camarasQrDisponibles" item-title="nombre"
+                    item-value="id" label="Seleccionar cámara" variant="outlined" prepend-inner-icon="mdi-video"
+                    class="mb-4" @update:model-value="cambiarCamaraQr" />
+
                 <v-alert type="info" variant="tonal" class="mb-4" rounded="lg">
                     Coloque el QR frente a la cámara.
                 </v-alert>
@@ -343,6 +347,21 @@ import {
 } from '../../utils/camaraFormulario'
 
 import QrScanner from 'qr-scanner'
+const camarasQrDisponibles = ref([])
+const camaraQrSeleccionada = ref(null)
+
+const listarCamarasQr = async () => {
+    const camaras = await QrScanner.listCameras(true)
+
+    camarasQrDisponibles.value = camaras.map((camara, index) => ({
+        id: camara.id,
+        nombre: camara.label || `Cámara ${index + 1}`
+    }))
+
+    if (!camaraQrSeleccionada.value && camarasQrDisponibles.value.length > 0) {
+        camaraQrSeleccionada.value = camarasQrDisponibles.value[0].id
+    }
+}
 
 const emit = defineEmits(['asistenciaRegistrada', 'cancelar'])
 
@@ -915,6 +934,7 @@ const abrirLectorQr = async () => {
         dialogQr.value = true
 
         await nextTick()
+        await listarCamarasQr()
 
         qrScanner.value = new QrScanner(
             videoQrRef.value,
@@ -922,17 +942,29 @@ const abrirLectorQr = async () => {
                 procesarQr(result.data)
             },
             {
-                preferredCamera: 'environment',
                 highlightScanRegion: true,
                 highlightCodeOutline: true
             }
         )
 
-        await qrScanner.value.start()
+        await qrScanner.value.start(
+            camaraQrSeleccionada.value || undefined
+        )
     } catch (err) {
         console.error('Error al abrir lector QR:', err)
         error('No se pudo acceder a la cámara para leer QR')
         cerrarLectorQr()
+    }
+}
+
+const cambiarCamaraQr = async () => {
+    try {
+        if (!qrScanner.value || !camaraQrSeleccionada.value) return
+
+        await qrScanner.value.setCamera(camaraQrSeleccionada.value)
+    } catch (err) {
+        console.error('Error al cambiar cámara QR:', err)
+        error('No se pudo cambiar la cámara del lector QR')
     }
 }
 
