@@ -12,17 +12,18 @@
                         Registrar asistencia
                     </div>
                     <div class="text-body-2 text-medium-emphasis">
-                        Registro de asistencia a evento por DPI, QR, rostro o huella.
+                        Registro de asistencia a evento por huella.
                     </div>
                 </div>
             </div>
 
-            <v-chip :color="form.rostro || form.huella ? 'success' : 'warning'" variant="tonal" size="large"
+            <!-- FUNCIONALIDAD FACIAL DESHABILITADA: el estado depende únicamente de la huella. -->
+            <v-chip :color="form.huella ? 'success' : 'warning'" variant="tonal" size="large"
                 class="font-weight-bold">
                 <v-icon start>
-                    {{ form.rostro || form.huella ? 'mdi-check-circle' : 'mdi-alert-circle' }}
+                    {{ form.huella ? 'mdi-check-circle' : 'mdi-alert-circle' }}
                 </v-icon>
-                {{ form.rostro || form.huella ? 'Validación realizada' : 'Validación pendiente' }}
+                {{ form.huella ? 'Validación realizada' : 'Validación pendiente' }}
             </v-chip>
         </div>
     </v-card-title>
@@ -95,13 +96,13 @@
                                     Validación biométrica
                                 </div>
                                 <div class="text-caption text-medium-emphasis">
-                                    Capture rostro o verifique huella.
+                                    Verifique la huella para registrar la asistencia.
                                 </div>
                             </div>
                         </div>
 
                         <v-row>
-                            <!-- ROSTRO -->
+                            <!-- FUNCIONALIDAD FACIAL DESHABILITADA (validación y captura por rostro):
                             <v-col v-if="habilitarRostro" cols="12" md="6">
                                 <v-card rounded="xl" elevation="2" class="pa-4 h-100"
                                     :color="form.fotografia ? 'success' : undefined"
@@ -147,6 +148,7 @@
                                     </div>
                                 </v-card>
                             </v-col>
+                            -->
 
                             <!-- HUELLA -->
                             <v-row justify="center" align="stretch">
@@ -213,7 +215,8 @@
                                 </v-col>
                             </v-row>
 
-                            <v-col v-if="!habilitarRostro && !habilitarHuella" cols="12">
+                            <!-- FUNCIONALIDAD FACIAL DESHABILITADA: ya no se evalúa habilitarRostro. -->
+                            <v-col v-if="!habilitarHuella" cols="12">
                                 <v-alert type="warning" variant="tonal" rounded="lg">
                                     Seleccione un tipo de validación para continuar.
                                 </v-alert>
@@ -238,7 +241,7 @@
     </v-card-actions>
 
 
-    <!-- DIALOG CÁMARA -->
+    <!-- FUNCIONALIDAD FACIAL DESHABILITADA (captura facial para asistencia):
     <v-dialog v-model="dialogCamara" max-width="700" persistent>
         <v-card rounded="xl">
             <v-card-title class="d-flex align-center justify-space-between pa-5">
@@ -285,6 +288,7 @@
             </v-card-actions>
         </v-card>
     </v-dialog>
+    -->
 
     <!-- DIALOG QR -->
     <v-dialog v-model="dialogQr" max-width="700" persistent>
@@ -338,13 +342,14 @@ import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import { httpsol, httpcat, httpshuella } from '../../api/nodohttp'
 import { endpoints } from '../../api/endpoints'
 import { alertLoading, closeAlert, useAlert } from '../../utils/useAlert'
-import {
-    abrirCamara as abrirCamaraUtil,
-    cambiarCamara as cambiarCamaraUtil,
-    tomarFoto as tomarFotoUtil,
-    cerrarCamara as cerrarCamaraUtil,
-    eliminarFotografia as eliminarFotografiaUtil
-} from '../../utils/camaraFormulario'
+// FUNCIONALIDAD FACIAL DESHABILITADA:
+// import {
+//     abrirCamara as abrirCamaraUtil,
+//     cambiarCamara as cambiarCamaraUtil,
+//     tomarFoto as tomarFotoUtil,
+//     cerrarCamara as cerrarCamaraUtil,
+//     eliminarFotografia as eliminarFotografiaUtil
+// } from '../../utils/camaraFormulario'
 
 import QrScanner from 'qr-scanner'
 const camarasQrDisponibles = ref([])
@@ -378,12 +383,13 @@ const verificandoHuella = ref(false)
 const cargandoCatalogos = ref(false)
 const errorCatalogos = ref('')
 
-const dialogCamara = ref(false)
-const videoRef = ref(null)
-const canvasRef = ref(null)
-const streamCamara = ref(null)
-const camarasDisponibles = ref([])
-const camaraSeleccionada = ref(null)
+// FUNCIONALIDAD FACIAL DESHABILITADA:
+// const dialogCamara = ref(false)
+// const videoRef = ref(null)
+// const canvasRef = ref(null)
+// const streamCamara = ref(null)
+// const camarasDisponibles = ref([])
+// const camaraSeleccionada = ref(null)
 
 const documentoValido = ref(false)
 const mensajeDocumento = ref('')
@@ -395,7 +401,8 @@ const catalogos = ref({
 })
 
 const tiposValidacion = [
-    { id: 'ROSTRO', nombre: 'Rostro' },
+    // FUNCIONALIDAD FACIAL DESHABILITADA:
+    // { id: 'ROSTRO', nombre: 'Rostro' },
     { id: 'HUELLA', nombre: 'Huella' }
 ]
 
@@ -436,17 +443,18 @@ const obtenerFechaHoraActual = () => {
 const getInitialForm = () => ({
     id_evento: 1,
     numero_documento: '',
-    rostro: '',
-    rostroPreview: '',
-    fotografia: null,
+    // FUNCIONALIDAD FACIAL DESHABILITADA:
+    // rostro: '',
+    // rostroPreview: '',
+    // fotografia: null,
     enrolamientos: [
-        {
-            codigo: 'R1',
-            id_caracteristica: 11,
-            imagen: '',
-            plantilla: '',
-            observaciones: 'Rostro frontal'
-        }
+        // {
+        //     codigo: 'R1',
+        //     id_caracteristica: 11,
+        //     imagen: '',
+        //     plantilla: '',
+        //     observaciones: 'Rostro frontal'
+        // }
     ],
     huella: null,
     mano: "izquierda",
@@ -459,32 +467,36 @@ const getInitialForm = () => ({
 
 const form = ref(getInitialForm())
 
-const habilitarRostro = computed(() => {
-    return form.value.tipo_validacion === 'BIOMETRICA'
-        || form.value.tipo_validacion === 'ROSTRO'
-})
+// FUNCIONALIDAD FACIAL DESHABILITADA:
+// const habilitarRostro = computed(() => {
+//     return form.value.tipo_validacion === 'BIOMETRICA'
+//         || form.value.tipo_validacion === 'ROSTRO'
+// })
+//
+// const habilitarHuella = computed(() => {
+//     return form.value.tipo_validacion === 'BIOMETRICA'
+//         || form.value.tipo_validacion === 'HUELLA'
+// })
+//
+// watch(
+//     () => form.value.tipo_validacion,
+//     (nuevoValor) => {
+//         if (nuevoValor === 'ROSTRO') {
+//             form.value.mano = null
+//             form.value.codigo_huella = null
+//             eliminarHuella()
+//         }
+//
+//         if (nuevoValor === 'HUELLA') {
+//             eliminarFotografia()
+//         }
+//     }
+// )
 
+// Se mantiene activa únicamente la validación por huella.
 const habilitarHuella = computed(() => {
-    return form.value.tipo_validacion === 'BIOMETRICA'
-        || form.value.tipo_validacion === 'HUELLA'
+    return form.value.tipo_validacion === 'HUELLA'
 })
-
-watch(
-    () => form.value.tipo_validacion,
-    (nuevoValor) => {
-        if (nuevoValor === 'ROSTRO') {
-            form.value.mano = null
-            form.value.codigo_huella = null
-            eliminarHuella()
-        }
-
-        if (nuevoValor === 'HUELLA') {
-            eliminarFotografia()
-        }
-    }
-)
-
-
 
 const campoObligatorio = (valor) => {
     return !!valor || 'Campo obligatorio'
@@ -579,81 +591,83 @@ const cargarCatalogos = async () => {
     }
 }
 
-const abrirCamara = async () => {
-    try {
-        await abrirCamaraUtil({
-            dialogCamara,
-            camarasDisponibles,
-            camaraSeleccionada,
-            streamCamara,
-            videoRef
-        })
-    } catch (err) {
-        console.error('Error al abrir cámara:', err)
-        error('No se pudo acceder a la cámara')
-        dialogCamara.value = false
-    }
-}
+// FUNCIONALIDAD FACIAL DESHABILITADA:
+// const abrirCamara = async () => {
+//     try {
+//         await abrirCamaraUtil({
+//             dialogCamara,
+//             camarasDisponibles,
+//             camaraSeleccionada,
+//             streamCamara,
+//             videoRef
+//         })
+//     } catch (err) {
+//         console.error('Error al abrir cámara:', err)
+//         error('No se pudo acceder a la cámara')
+//         dialogCamara.value = false
+//     }
+// }
+//
+// const cambiarCamara = async () => {
+//     try {
+//         await cambiarCamaraUtil({
+//             dialogCamara,
+//             camaraSeleccionada,
+//             streamCamara,
+//             videoRef
+//         })
+//     } catch (err) {
+//         console.error('Error al cambiar cámara:', err)
+//         error('No se pudo cambiar la cámara')
+//     }
+// }
+//
+// const tomarFoto = () => {
+//     try {
+//         tomarFotoUtil({
+//             videoRef,
+//             canvasRef,
+//             form,
+//             origen: 'asistencia',
+//         })
+//
+//         cerrarCamara()
+//     } catch (err) {
+//         console.error('Error al tomar fotografía:', err)
+//         error('No se pudo capturar la fotografía')
+//     }
+//
+//
+// }
+// watch(
+//     () => form.value.fotografia,
+//     async (nuevaFoto, fotoAnterior) => {
+//         if (!nuevaFoto || nuevaFoto === fotoAnterior) return
+//
+//         if (form.value.tipo_validacion !== 'ROSTRO') return
+//
+//         await guardarAsistenciaRostro()
+//     }
+// )
+//
+// const cerrarCamara = () => {
+//     cerrarCamaraUtil({
+//         streamCamara,
+//         dialogCamara
+//     })
+// }
+//
+// const eliminarFotografia = () => {
+//     eliminarFotografiaUtil({
+//         form,
+//         campo: 'fotografia'
+//     })
+//
+//     form.value.rostro = ''
+//     form.value.rostroPreview = ''
+//     form.value.enrolamientos[0].imagen = ''
+// }
 
-const cambiarCamara = async () => {
-    try {
-        await cambiarCamaraUtil({
-            dialogCamara,
-            camaraSeleccionada,
-            streamCamara,
-            videoRef
-        })
-    } catch (err) {
-        console.error('Error al cambiar cámara:', err)
-        error('No se pudo cambiar la cámara')
-    }
-}
-
-const tomarFoto = () => {
-    try {
-        tomarFotoUtil({
-            videoRef,
-            canvasRef,
-            form,
-            origen: 'asistencia',
-        })
-
-        cerrarCamara()
-    } catch (err) {
-        console.error('Error al tomar fotografía:', err)
-        error('No se pudo capturar la fotografía')
-    }
-
-
-}
-watch(
-    () => form.value.fotografia,
-    async (nuevaFoto, fotoAnterior) => {
-        if (!nuevaFoto || nuevaFoto === fotoAnterior) return
-
-        if (form.value.tipo_validacion !== 'ROSTRO') return
-
-        await guardarAsistenciaRostro()
-    }
-)
-
-const cerrarCamara = () => {
-    cerrarCamaraUtil({
-        streamCamara,
-        dialogCamara
-    })
-}
-
-const eliminarFotografia = () => {
-    eliminarFotografiaUtil({
-        form,
-        campo: 'fotografia'
-    })
-
-    form.value.rostro = ''
-    form.value.rostroPreview = ''
-    form.value.enrolamientos[0].imagen = ''
-}
 const obtenerIdCaracteristicaDesdeCodigo = (codigo) => {
     const numero = String(codigo || '').replace('H', '')
     return Number(numero || 0)
@@ -773,17 +787,18 @@ const eliminarHuella = () => {
 }
 
 const validarBiometria = () => {
-    if (form.value.tipo_validacion === 'BIOMETRICA') {
-        if (!form.value.rostro || !form.value.huella) {
-            error('Debe capturar fotografía y huella para registrar la asistencia')
-            return false
-        }
-    }
-
-    if (form.value.tipo_validacion === 'ROSTRO' && !form.value.rostro) {
-        error('Debe capturar la fotografía para registrar la asistencia')
-        return false
-    }
+    // FUNCIONALIDAD FACIAL DESHABILITADA:
+    // if (form.value.tipo_validacion === 'BIOMETRICA') {
+    //     if (!form.value.rostro || !form.value.huella) {
+    //         error('Debe capturar fotografía y huella para registrar la asistencia')
+    //         return false
+    //     }
+    // }
+    //
+    // if (form.value.tipo_validacion === 'ROSTRO' && !form.value.rostro) {
+    //     error('Debe capturar la fotografía para registrar la asistencia')
+    //     return false
+    // }
 
     if (form.value.tipo_validacion === 'HUELLA' && !form.value.huella) {
         error('Debe capturar la huella para registrar la asistencia')
@@ -797,7 +812,8 @@ const obtenerPayload = () => {
     return {
         id_evento: Number(form.value.id_evento),
         numero_documento: limpiarDpi(form.value.numero_documento),
-        rostro: form.value.rostro,
+        // FUNCIONALIDAD FACIAL DESHABILITADA:
+        // rostro: form.value.rostro,
         huella: form.value.huella,
         codigo_huella: form.value.codigo_huella,
         id_caracteristica_huella: Number(form.value.id_caracteristica_huella || 0),
@@ -871,61 +887,62 @@ const limpiarFormulario = () => {
 }
 
 // para la asistencia 
-const guardarAsistenciaRostro = async () => {
-    try {
-        if (!form.value.fotografia) return
-
-        if (!form.value.id_evento) {
-            error('Seleccione un evento antes de registrar asistencia')
-            return
-        }
-
-        validarDocumentoBlur()
-
-        if (!documentoValido.value) {
-            error('Ingrese un DPI válido antes de registrar asistencia')
-            return
-        }
-
-        const rostroBase64 = form.value.fotografia.replace('data:image/jpeg;base64,', '')
-
-        const payload = {
-            id_evento: Number(form.value.id_evento),
-            numero_documento: limpiarDpi(form.value.numero_documento),
-            rostro: rostroBase64
-        }
-
-        alertLoading('Registrando asistencia', 'Validando rostro y guardando asistencia...')
-
-        const response = await httpsol.post(
-            endpoints.asistencia.asistenciaRostro,
-            payload
-        )
-
-        closeAlert()
-
-        if (
-            response.data?.resultado === 200 ||
-            response.data?.success === true
-        ) {
-            success(response.data?.mensaje || 'Asistencia registrada correctamente')
-            return
-        }
-
-        error(response.data?.mensaje || 'No se pudo registrar la asistencia')
-    } catch (err) {
-        closeAlert()
-        console.error('Error al registrar asistencia por rostro:', err)
-
-        error(
-            'Error',
-            err.response?.data?.mensaje ||
-            err.response?.data?.message ||
-            err.message ||
-            'Ocurrió un error al registrar la asistencia'
-        )
-    }
-}
+// FUNCIONALIDAD FACIAL DESHABILITADA:
+// const guardarAsistenciaRostro = async () => {
+//     try {
+//         if (!form.value.fotografia) return
+//
+//         if (!form.value.id_evento) {
+//             error('Seleccione un evento antes de registrar asistencia')
+//             return
+//         }
+//
+//         validarDocumentoBlur()
+//
+//         if (!documentoValido.value) {
+//             error('Ingrese un DPI válido antes de registrar asistencia')
+//             return
+//         }
+//
+//         const rostroBase64 = form.value.fotografia.replace('data:image/jpeg;base64,', '')
+//
+//         const payload = {
+//             id_evento: Number(form.value.id_evento),
+//             numero_documento: limpiarDpi(form.value.numero_documento),
+//             rostro: rostroBase64
+//         }
+//
+//         alertLoading('Registrando asistencia', 'Validando rostro y guardando asistencia...')
+//
+//         const response = await httpsol.post(
+//             endpoints.asistencia.asistenciaRostro,
+//             payload
+//         )
+//
+//         closeAlert()
+//
+//         if (
+//             response.data?.resultado === 200 ||
+//             response.data?.success === true
+//         ) {
+//             success(response.data?.mensaje || 'Asistencia registrada correctamente')
+//             return
+//         }
+//
+//         error(response.data?.mensaje || 'No se pudo registrar la asistencia')
+//     } catch (err) {
+//         closeAlert()
+//         console.error('Error al registrar asistencia por rostro:', err)
+//
+//         error(
+//             'Error',
+//             err.response?.data?.mensaje ||
+//             err.response?.data?.message ||
+//             err.message ||
+//             'Ocurrió un error al registrar la asistencia'
+//         )
+//     }
+// }
 
 //para el QR
 

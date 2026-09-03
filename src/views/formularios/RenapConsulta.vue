@@ -280,11 +280,12 @@ const form = ref({
     consultado_renap: 'N',
     fotografia: '',
 
-    enrolamientos: [
-        {
-            imagen: ''
-        }
-    ]
+    // FUNCIONALIDAD FACIAL DESHABILITADA: la fotografía de RENAP se conserva solo para consulta visual.
+    // enrolamientos: [
+    //     {
+    //         imagen: ''
+    //     }
+    // ]
 })
 
 const catalogos = computed(() => props.catalogos)
@@ -426,7 +427,7 @@ const consultarRenap = async () => {
             .replace(/-/g, '')
 
         const payloadRenap = {
-            id_usuario_renap: 3,
+            id_usuario_renap: 1,
             busquedaCui: {
                 cui: dpiLimpio
             }
@@ -495,9 +496,10 @@ const consultarRenap = async () => {
         if (datosPersona.respuesta_renap.data[0].FOTO) {
             form.value.fotografia = obtenerFotoRenap(datosPersona.respuesta_renap.data[0].FOTO)
 
-            if (form.value.enrolamientos?.[0]) {
-                form.value.enrolamientos[0].imagen = datosPersona.respuesta_renap.data[0].FOTO
-            }
+            // FUNCIONALIDAD FACIAL DESHABILITADA: no copiar la fotografía de RENAP al enrolamiento facial.
+            // if (form.value.enrolamientos?.[0]) {
+            //     form.value.enrolamientos[0].imagen = datosPersona.respuesta_renap.data[0].FOTO
+            // }
         } else {
             form.value.fotografia = ''
         }
@@ -545,11 +547,12 @@ const limpiarConsultaRenap = () => {
     form.value.correlativo_documento = ''
     form.value.consultado_renap = 'N'
     form.value.fotografia = ''
-    form.value.enrolamientos = [
-        {
-            imagen: ''
-        }
-    ]
+    // FUNCIONALIDAD FACIAL DESHABILITADA:
+    // form.value.enrolamientos = [
+    //     {
+    //         imagen: ''
+    //     }
+    // ]
 
     respuestaRenapVista.value = null
     dialogResultadoRenap.value = false

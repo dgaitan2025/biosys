@@ -4,7 +4,10 @@ import { endpoints } from './endpoints'
 import router from '../router'
 
 const http = axios.create({
-  baseURL: 'https://biosyssecure.onrender.com',
+  baseURL: 'https://seguridadbiosys.somee.com',
+  //baseURL: 'http://localhost:5224',
+  //baseURL: 'https://seguridadbiosys.somee.com/',
+  //baseURL: 'https://biosyssecure.onrender.com',
   timeout: 90000,
   headers: {
     'Content-Type': 'application/json'
@@ -20,7 +23,9 @@ const httpshuella = axios.create({
 })
 
 const httpcat = axios.create({
-  baseURL: 'https://biosyssol.onrender.com',
+  baseURL: 'http://biosysapi.somee.com',
+  //baseURL: 'http://localhost:5041',
+  //baseURL: 'https://biosyssol.onrender.com',
   timeout: 90000,
   headers: {
     'Content-Type': 'application/json'
@@ -28,7 +33,10 @@ const httpcat = axios.create({
 })
 
 const httpsol = axios.create({
-  baseURL: 'https://biosyssol.onrender.com',
+  baseURL: 'http://biosysapi.somee.com',
+  //baseURL: 'http://localhost:5041',
+  //baseURL: 'https://biosyssol.onrender.com',
+  //baseURL: 'https://biosyssol.onrender.com',
   timeout: 90000,
   headers: {
     'Content-Type': 'application/json'
@@ -36,7 +44,10 @@ const httpsol = axios.create({
 })
 
 const refreshClient = axios.create({
-  baseURL: 'https://biosyssecure.onrender.com',
+  baseURL: 'https://seguridadbiosys.somee.com',
+  //baseURL: 'http://localhost:5224',
+  //baseURL: 'https://seguridadbiosys.somee.com/',
+  //baseURL: 'https://biosyssecure.onrender.com',
   timeout: 90000,
   headers: {
     'Content-Type': 'application/json'

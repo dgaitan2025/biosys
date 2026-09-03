@@ -16,7 +16,8 @@ export const endpoints = {
 
   },
   asistencia: {
-    asistenciaRostro: '/biosys/api/asistencia_biometrica/EventoAfiliado/guardar',
+    // FUNCIONALIDAD FACIAL DESHABILITADA:
+    // asistenciaRostro: '/biosys/api/asistencia_biometrica/EventoAfiliado/guardar',
     asistenciaHuella: '/biosys/api/asistencia_biometrica/EventoAfiliado/guardar_por_huella'
   },
   solicitudes: {
@@ -28,8 +29,9 @@ export const endpoints = {
     rechazar: '/biosys/api/gestion_afiliados/Solicitud/rechazar',
     resumen: '/biosys/api/gestion_afiliados/Solicitud/consultar_estadistico',
     huella: '/api/BiometriaAfiliado/consultar-huella',
-    segmentarRostro: '/api/BiometriaAfiliado/segmentar-biometria',
-    validarRostro: '/api/BiometriaAfiliado/verificar-biometria',
+    // FUNCIONALIDAD FACIAL DESHABILITADA:
+    // segmentarRostro: '/api/BiometriaAfiliado/segmentar-biometria',
+    // validarRostro: '/api/BiometriaAfiliado/verificar-biometria',
     obtenerAfiliado: '/biosys/api/gestion_afiliados/Afiliado/consultar_actualizacion_by_id',
     crearEvento: '/biosys/api/asistencia_biometrica/evento/guardar',
     solicitudActualizar: '/biosys/api/gestion_afiliados/Solicitud/guardar',

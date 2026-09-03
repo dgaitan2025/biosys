@@ -43,7 +43,8 @@ export function useActualizacionSolicitud(idTipoSolicitud) {
         id_centro_votacion: null,
         enrolado: 0,
         huella: null,
-        fotografia: null,
+        // FUNCIONALIDAD FACIAL DESHABILITADA:
+        // fotografia: null,
         enrolamientos: [],
         observaciones: ''
     })

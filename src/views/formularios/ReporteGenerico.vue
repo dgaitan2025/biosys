@@ -92,33 +92,46 @@ const eventosSelect = computed(() => {
 })
 
 const reportes = {
-    'afiliados-sexo': {
+    'afiliados-genero': {
         titulo: 'Afiliados por Género',
-        archivo: 'afiliados-por-genero'
+        archivo: 'afiliados-por-genero',
+        endpoint: 'afiliados-sexo'
     },
-    'evento-asistencia': {
+
+    'asistencia-eventos': {
         titulo: 'Asistencia a Eventos',
-        archivo: 'asistencia-a-eventos'
+        archivo: 'asistencia-a-eventos',
+        endpoint: 'evento-asistencia'
     },
-    'afiliados-departamento-municipio': {
+
+    'afiliados-municipio': {
         titulo: 'Afiliados por Municipio',
-        archivo: 'afiliados-por-municipio'
+        archivo: 'afiliados-por-municipio',
+        endpoint: 'afiliados-departamento-municipio'
     },
-    'afiliados-ejercicio-fiscal': {
+
+    'por-año-afiliacion': {
         titulo: 'Afiliados por Año de Afiliación',
-        archivo: 'afiliados-por-anio'
+        archivo: 'afiliados-por-anio',
+        endpoint: 'afiliados-ejercicio-fiscal'
     },
+
     'solicitudes-renap': {
         titulo: 'Solicitudes de Renap',
-        archivo: 'solicitudes-renap'
+        archivo: 'solicitudes-renap',
+        endpoint: 'solicitudes-renap'
     },
+
     'afiliados-activos': {
         titulo: 'Afiliados Activos',
-        archivo: 'afiliados-activos'
+        archivo: 'afiliados-activos',
+        endpoint: 'afiliados-activos'
     },
-    'evento-asistencia-detalle': {
-        titulo: 'Detalle de Asistencia a Eventos',
+
+    'asistencia-por-evento': {
+        titulo: 'Asistencia por Evento',
         archivo: 'detalle-asistencia-a-eventos',
+        endpoint: 'evento-asistencia-detalle',
         requiereEvento: true
     }
 }
@@ -159,6 +172,7 @@ const cargarEventos = async () => {
 }
 
 const descargarReporte = async (formato) => {
+
     if (!reporteActual.value) {
         console.error('Reporte no encontrado:', tipoRuta.value)
         return
@@ -166,6 +180,7 @@ const descargarReporte = async (formato) => {
 
     if (requiereEvento.value && !idEventoSeleccionado.value) {
         console.error('Debe seleccionar un evento')
+        alertError('Debe seleccionar un evento.')
         return
     }
 
@@ -178,21 +193,30 @@ const descargarReporte = async (formato) => {
     }
 
     try {
+
         let response
 
         if (requiereEvento.value) {
-            const url = `${endpoints.reportes}/${tipoRuta.value}/${formato}`
+
+            const url = `${endpoints.reportes}/${reporteActual.value.endpoint}/${formato}`
 
             const body = {
-                id_Evento: idEventoSeleccionado.value,
+                id_Evento: Number(idEventoSeleccionado.value),
                 base64: false
             }
+
+            console.log('URL REPORTE:', url)
+            console.log('BODY REPORTE:', body)
 
             response = await httpsol.post(url, body, {
                 responseType: 'blob'
             })
+
         } else {
-            const url = `${endpoints.reportes}/${tipoRuta.value}/${formato}?base64=false`
+
+            const url = `${endpoints.reportes}/${reporteActual.value.endpoint}/${formato}?base64=false`
+
+            console.log('URL REPORTE:', url)
 
             response = await httpsol.get(url, {
                 responseType: 'blob'
@@ -205,22 +229,35 @@ const descargarReporte = async (formato) => {
             ? 'application/pdf'
             : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
 
-        const blob = new Blob([response.data], { type: mimeType })
+        const blob = new Blob([response.data], {
+            type: mimeType
+        })
+
         const objectUrl = window.URL.createObjectURL(blob)
 
         const link = document.createElement('a')
+
         link.href = objectUrl
         link.download = `${reporteActual.value.archivo}.${extension}`
 
         document.body.appendChild(link)
+
         link.click()
+
         document.body.removeChild(link)
 
         window.URL.revokeObjectURL(objectUrl)
+
     } catch (error) {
-        alertError('Error al descargar el reporte o no tiene datos para mostrar.')
+
+        alertError(
+            'Error al descargar el reporte o no tiene datos para mostrar.'
+        )
+
         console.error('Error al descargar reporte:', error)
+
     } finally {
+
         loadingPdf.value = false
         loadingExcel.value = false
     }

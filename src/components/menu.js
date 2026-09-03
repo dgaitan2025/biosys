@@ -17,10 +17,22 @@ const popstateRegistrado = ref(false)
 const tieneHijos = (item) => Array.isArray(item?.children) && item.children.length > 0
 const esRutaValida = (item) => item?.id_menu === 3 && !!item?.path
 
+// FUNCIONALIDAD FACIAL DESHABILITADA: aunque el menú proviene del backend,
+// se evita exponer cualquier opción de rostro que todavía exista en la configuración remota.
+const esOpcionFacialDeshabilitada = (item) => {
+  const ruta = String(item?.path || item?.url || '').toLowerCase()
+  const titulo = String(item?.title || item?.short_name || '').toLowerCase()
+
+  return ruta.includes('rostro') || titulo.includes('rostro') || titulo.includes('facial')
+}
+
 const normalizarMenu = (items) => {
   if (!Array.isArray(items)) return []
 
-  return items.map(item => ({
+  // return items.map(item => ({
+  return items
+    .filter(item => !esOpcionFacialDeshabilitada(item))
+    .map(item => ({
     ...item,
     id: item.id,
     title: item.title || item.short_name || 'Sin nombre',

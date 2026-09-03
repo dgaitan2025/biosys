@@ -36,7 +36,8 @@ const { smAndDown } = useDisplay()
                 </h1>
                 <p class="text-body-1 text-medium-emphasis mb-6">
                   BioSys centraliza el registro de personas, validación de identidad,
-                  huellas y reconocimiento facial en una plataforma.
+                  <!-- FUNCIONALIDAD FACIAL DESHABILITADA: huellas y reconocimiento facial en una plataforma. -->
+                  huellas y control de identidad en una plataforma.
                 </p>
 
               </v-col>
@@ -66,6 +67,7 @@ const { smAndDown } = useDisplay()
                       </v-card>
                     </v-col>
 
+                    <!-- FUNCIONALIDAD FACIAL DESHABILITADA:
                     <v-col cols="12" sm="6">
                       <v-card variant="tonal" class="pa-4" rounded="lg">
                         <v-icon size="32" color="primary" class="mb-2">mdi-face-recognition</v-icon>
@@ -75,6 +77,7 @@ const { smAndDown } = useDisplay()
                         </div>
                       </v-card>
                     </v-col>
+                    -->
 
                     <v-col cols="12" sm="6">
                       <v-card variant="tonal" class="pa-4" rounded="lg">

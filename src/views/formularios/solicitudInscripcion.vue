@@ -369,7 +369,7 @@
                         </v-card>
                     </v-col>
 
-                    <!-- FOTOGRAFÍA -->
+                    <!-- FUNCIONALIDAD FACIAL DESHABILITADA (captura y almacenamiento de rostro):
                     <v-col cols="12" md="6" class="d-flex">
                         <v-card class="pa-4 biometria-card d-flex flex-column" rounded="xl" elevation="2">
                             <div class="text-subtitle-2 font-weight-bold mb-2">
@@ -403,6 +403,7 @@
                             </div>
                         </v-card>
                     </v-col>
+                    -->
                 </v-row>
             </v-container>
         </v-form>
@@ -445,6 +446,7 @@
         </v-card>
     </v-dialog>
 
+    <!-- FUNCIONALIDAD FACIAL DESHABILITADA (captura de rostro):
     <v-dialog v-model="dialogCamara" max-width="600" persistent>
         <v-card rounded="xl">
             <v-card-title class="text-h6 font-weight-bold">
@@ -474,6 +476,7 @@
             </v-card-actions>
         </v-card>
     </v-dialog>
+    -->
 </template>
 
 <script setup>
@@ -492,24 +495,26 @@ import {
     formatearTelefono, validarTelefono
 } from '../../utils/validacionesformulario'
 
-import {
-    abrirCamara as abrirCamaraUtil,
-    cambiarCamara as cambiarCamaraUtil,
-    tomarFoto as tomarFotoUtil,
-    cerrarCamara as cerrarCamaraUtil,
-    eliminarFotografia as eliminarFotografiaUtil
-} from '../../utils/camaraFormulario'
+// FUNCIONALIDAD FACIAL DESHABILITADA:
+// import {
+//     abrirCamara as abrirCamaraUtil,
+//     cambiarCamara as cambiarCamaraUtil,
+//     tomarFoto as tomarFotoUtil,
+//     cerrarCamara as cerrarCamaraUtil,
+//     eliminarFotografia as eliminarFotografiaUtil
+// } from '../../utils/camaraFormulario'
 import { cuiValido } from '../../utils/validaDPI'
 
 
 const router = useRouter()
-const dialogCamara = ref(false)
-const videoRef = ref(null)
-const canvasRef = ref(null)
-const streamCamara = ref(null)
-
-const camarasDisponibles = ref([])
-const camaraSeleccionada = ref(null)
+// FUNCIONALIDAD FACIAL DESHABILITADA:
+// const dialogCamara = ref(false)
+// const videoRef = ref(null)
+// const canvasRef = ref(null)
+// const streamCamara = ref(null)
+//
+// const camarasDisponibles = ref([])
+// const camaraSeleccionada = ref(null)
 
 const mostrarCorrelativoNumero = ref(false)
 
@@ -569,7 +574,8 @@ const seleccionarFechaNacimiento = (fecha) => {
 }
 
 
-const fotoFile = ref(null)
+// FUNCIONALIDAD FACIAL DESHABILITADA:
+// const fotoFile = ref(null)
 
 const guardarHuella = (fingerprints) => {
   try {
@@ -660,19 +666,20 @@ const capturarHuella = () => {
     success('Huella capturada correctamente')
 }
 
-const cargarFotografia = () => {
-    const file = fotoFile.value
-
-    if (!file) return
-
-    const reader = new FileReader()
-
-    reader.onload = () => {
-        // form.value.fotografia = reader.result
-    }
-
-    reader.readAsDataURL(file)
-}
+// FUNCIONALIDAD FACIAL DESHABILITADA:
+// const cargarFotografia = () => {
+//     const file = fotoFile.value
+//
+//     if (!file) return
+//
+//     const reader = new FileReader()
+//
+//     reader.onload = () => {
+//         // form.value.fotografia = reader.result
+//     }
+//
+//     reader.readAsDataURL(file)
+// }
 
 const catalogos = ref({
     ejerciciosFiscales: [],
@@ -753,16 +760,16 @@ const getInitialForm = () => ({
     consultado_renap: 'N',
     observaciones: '',
     enrolamientos: [
-
-        {
-            id: 0,
-            id_caracteristica: 11,
-            probatorio: "base64_probatorio_3",
-            imagen: "base64_imagen_3",
-            plantilla: "base64_plantilla_3",
-            thumnail: "base64_thumnail_3",
-            observaciones: "Rostro frontal"
-        }
+        // FUNCIONALIDAD FACIAL DESHABILITADA:
+        // {
+        //     id: 0,
+        //     id_caracteristica: 11,
+        //     probatorio: "base64_probatorio_3",
+        //     imagen: "base64_imagen_3",
+        //     plantilla: "base64_plantilla_3",
+        //     thumnail: "base64_thumnail_3",
+        //     observaciones: "Rostro frontal"
+        // }
     ]
 })
 
@@ -946,66 +953,67 @@ const seleccionarFecha = (fecha) => {
     menuFecha.value = false
 }
 
-const abrirCamara = async () => {
-    try {
-        await abrirCamaraUtil({
-            dialogCamara,
-            camarasDisponibles,
-            camaraSeleccionada,
-            streamCamara,
-            videoRef
-        })
-    } catch (err) {
-        console.error('Error al abrir la cámara:', err)
-        error('No se pudo acceder a la cámara')
-        dialogCamara.value = false
-    }
-}
-
-const cambiarCamara = async () => {
-    try {
-        await cambiarCamaraUtil({
-            dialogCamara,
-            camaraSeleccionada,
-            streamCamara,
-            videoRef
-        })
-    } catch (err) {
-        console.error('Error al cambiar cámara:', err)
-        error('No se pudo cambiar la cámara')
-    }
-}
-
-const tomarFoto = () => {
-    try {
-        tomarFotoUtil({
-            videoRef,
-            canvasRef,
-            form
-        })
-
-        cerrarCamara()
-        
-    } catch (err) {
-        console.error('Error al tomar fotografía:', err)
-        error('No se pudo capturar la fotografía')
-    }
-}
-
-const cerrarCamara = () => {
-    cerrarCamaraUtil({
-        streamCamara,
-        dialogCamara
-    })
-}
-
-const eliminarFotografia = () => {
-    eliminarFotografiaUtil({
-        form
-    })
-}
-
-
+// FUNCIONALIDAD FACIAL DESHABILITADA:
+// const abrirCamara = async () => {
+//     try {
+//         await abrirCamaraUtil({
+//             dialogCamara,
+//             camarasDisponibles,
+//             camaraSeleccionada,
+//             streamCamara,
+//             videoRef
+//         })
+//     } catch (err) {
+//         console.error('Error al abrir la cámara:', err)
+//         error('No se pudo acceder a la cámara')
+//         dialogCamara.value = false
+//     }
+// }
+//
+// const cambiarCamara = async () => {
+//     try {
+//         await cambiarCamaraUtil({
+//             dialogCamara,
+//             camaraSeleccionada,
+//             streamCamara,
+//             videoRef
+//         })
+//     } catch (err) {
+//         console.error('Error al cambiar cámara:', err)
+//         error('No se pudo cambiar la cámara')
+//     }
+// }
+//
+// const tomarFoto = () => {
+//     try {
+//         tomarFotoUtil({
+//             videoRef,
+//             canvasRef,
+//             form
+//         })
+//
+//         cerrarCamara()
+//         
+//     } catch (err) {
+//         console.error('Error al tomar fotografía:', err)
+//         error('No se pudo capturar la fotografía')
+//     }
+// }
+//
+// const cerrarCamara = () => {
+//     cerrarCamaraUtil({
+//         streamCamara,
+//         dialogCamara
+//     })
+// }
+//
+// const eliminarFotografia = () => {
+//     eliminarFotografiaUtil({
+//         form
+//     })
+// }
+//
+//
 
 const convertirJsonABase64 = (data) => {
     const json = JSON.stringify(data)

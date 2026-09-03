@@ -389,7 +389,7 @@
                     </v-card>
                 </v-col>
 
-                <!-- FOTOGRAFÍA -->
+                <!-- FUNCIONALIDAD FACIAL DESHABILITADA (captura y almacenamiento de rostro):
                 <v-col cols="12" md="6" class="d-flex">
                     <v-card class="pa-4 biometria-card d-flex flex-column" rounded="xl" elevation="2">
                         <div class="text-subtitle-2 font-weight-bold mb-2">
@@ -423,6 +423,7 @@
                         </div>
                     </v-card>
                 </v-col>
+                -->
             </v-row>
         </v-container>
 
@@ -464,7 +465,7 @@
         </v-card>
     </v-dialog>
 
-    <!-- DIALOG CÁMARA -->
+    <!-- FUNCIONALIDAD FACIAL DESHABILITADA (captura de rostro):
     <v-dialog v-model="dialogCamara" max-width="600" persistent>
         <v-card rounded="xl">
             <v-card-title class="text-h6 font-weight-bold">
@@ -493,6 +494,7 @@
             </v-card-actions>
         </v-card>
     </v-dialog>
+    -->
 </template>
 
 <script setup>
@@ -515,13 +517,14 @@ import {
     validarTelefono
 } from '../../utils/validacionesformulario'
 
-import {
-    abrirCamara as abrirCamaraUtil,
-    cambiarCamara as cambiarCamaraUtil,
-    tomarFoto as tomarFotoUtil,
-    cerrarCamara as cerrarCamaraUtil,
-    eliminarFotografia as eliminarFotografiaUtil
-} from '../../utils/camaraFormulario'
+// FUNCIONALIDAD FACIAL DESHABILITADA:
+// import {
+//     abrirCamara as abrirCamaraUtil,
+//     cambiarCamara as cambiarCamaraUtil,
+//     tomarFoto as tomarFotoUtil,
+//     cerrarCamara as cerrarCamaraUtil,
+//     eliminarFotografia as eliminarFotografiaUtil
+// } from '../../utils/camaraFormulario'
 
 const props = defineProps({
     catalogos: {
@@ -548,12 +551,13 @@ const solicitudEncontrada = ref(false)
 const dialogHuella = ref(false)
 const dedoSeleccionado = ref(1)
 
-const dialogCamara = ref(false)
-const videoRef = ref(null)
-const canvasRef = ref(null)
-const streamCamara = ref(null)
-const camarasDisponibles = ref([])
-const camaraSeleccionada = ref(null)
+// FUNCIONALIDAD FACIAL DESHABILITADA:
+// const dialogCamara = ref(false)
+// const videoRef = ref(null)
+// const canvasRef = ref(null)
+// const streamCamara = ref(null)
+// const camarasDisponibles = ref([])
+// const camaraSeleccionada = ref(null)
 
 const mostrarCorrelativoNumero = ref(false)
 
@@ -651,18 +655,20 @@ const getInitialForm = () => ({
     observaciones: '',
 
     huella: null,
-    fotografia: null,
+    // FUNCIONALIDAD FACIAL DESHABILITADA:
+    // fotografia: null,
 
     enrolamientos: [
-        {
-            id: 0,
-            id_caracteristica: 11,
-            probatorio: '',
-            imagen: '',
-            plantilla: '',
-            thumnail: '',
-            observaciones: 'Rostro frontal'
-        }
+        // FUNCIONALIDAD FACIAL DESHABILITADA:
+        // {
+        //     id: 0,
+        //     id_caracteristica: 11,
+        //     probatorio: '',
+        //     imagen: '',
+        //     plantilla: '',
+        //     thumnail: '',
+        //     observaciones: 'Rostro frontal'
+        // }
     ]
 })
 
@@ -779,21 +785,22 @@ const formatearFechaDesdeApi = (valor) => {
     return `${dia}/${mes}/${anio}`
 }
 
-const normalizarFotografia = (foto) => {
-    if (!foto) return null
-
-    const valor = String(foto)
-
-    if (valor.startsWith('data:image')) {
-        return valor
-    }
-
-    return `data:image/jpeg;base64,${valor}`
-}
-
-const obtenerBiometriaRostro = (biometrias = []) => {
-    return biometrias.find(x => Number(x.id_caracteristica) === 11)
-}
+// FUNCIONALIDAD FACIAL DESHABILITADA:
+// const normalizarFotografia = (foto) => {
+//     if (!foto) return null
+//
+//     const valor = String(foto)
+//
+//     if (valor.startsWith('data:image')) {
+//         return valor
+//     }
+//
+//     return `data:image/jpeg;base64,${valor}`
+// }
+//
+// const obtenerBiometriaRostro = (biometrias = []) => {
+//     return biometrias.find(x => Number(x.id_caracteristica) === 11)
+// }
 
 const obtenerBiometriaHuella = (biometrias = []) => {
     return biometrias.find(x => Number(x.id_caracteristica) !== 11)
@@ -802,9 +809,14 @@ const obtenerBiometriaHuella = (biometrias = []) => {
 const cargarDatosParaActualizar = (data) => {
     const inicial = getInitialForm()
     const afiliado = data?.afiliado || {}
-    const biometrias = Array.isArray(data?.biometrias) ? data.biometrias : []
+    // FUNCIONALIDAD FACIAL DESHABILITADA:
+    // const biometrias = Array.isArray(data?.biometrias) ? data.biometrias : []
+    // Se excluye cualquier registro facial existente para que no vuelva a enviarse en una actualización.
+    const biometrias = Array.isArray(data?.biometrias)
+        ? data.biometrias.filter(x => Number(x.id_caracteristica) !== 11)
+        : []
 
-    const rostro = obtenerBiometriaRostro(biometrias)
+    // const rostro = obtenerBiometriaRostro(biometrias)
     const huella = obtenerBiometriaHuella(biometrias)
 
     form.value = {
@@ -864,7 +876,8 @@ const cargarDatosParaActualizar = (data) => {
 
         enrolamientos: biometrias.length ? biometrias : inicial.enrolamientos,
 
-        fotografia: normalizarFotografia(rostro?.imagen || afiliado.fotografia || afiliado.foto),
+        // FUNCIONALIDAD FACIAL DESHABILITADA:
+        // fotografia: normalizarFotografia(rostro?.imagen || afiliado.fotografia || afiliado.foto),
         huella: huella?.plantilla || huella?.probatorio || huella?.imagen || null
     }
 
@@ -1062,67 +1075,77 @@ const guardarHuella = (fingerprints) => {
     }
 }
 
-const abrirCamara = async () => {
-    try {
-        await abrirCamaraUtil({
-            dialogCamara,
-            camarasDisponibles,
-            camaraSeleccionada,
-            streamCamara,
-            videoRef
-        })
-    } catch (err) {
-        console.error('Error al abrir la cámara:', err)
-        error('No se pudo acceder a la cámara')
-        dialogCamara.value = false
-    }
-}
-
-const cambiarCamara = async () => {
-    try {
-        await cambiarCamaraUtil({
-            dialogCamara,
-            camaraSeleccionada,
-            streamCamara,
-            videoRef
-        })
-    } catch (err) {
-        console.error('Error al cambiar cámara:', err)
-        error('No se pudo cambiar la cámara')
-    }
-}
-
-const tomarFoto = () => {
-    try {
-        tomarFotoUtil({
-            videoRef,
-            canvasRef,
-            form
-        })
-
-        cerrarCamara()
-    } catch (err) {
-        console.error('Error al tomar fotografía:', err)
-        error('No se pudo capturar la fotografía')
-    }
-}
-
-const cerrarCamara = () => {
-    cerrarCamaraUtil({
-        streamCamara,
-        dialogCamara
-    })
-}
-
-const eliminarFotografia = () => {
-    eliminarFotografiaUtil({
-        form
-    })
-}
+// FUNCIONALIDAD FACIAL DESHABILITADA:
+// const abrirCamara = async () => {
+//     try {
+//         await abrirCamaraUtil({
+//             dialogCamara,
+//             camarasDisponibles,
+//             camaraSeleccionada,
+//             streamCamara,
+//             videoRef
+//         })
+//     } catch (err) {
+//         console.error('Error al abrir la cámara:', err)
+//         error('No se pudo acceder a la cámara')
+//         dialogCamara.value = false
+//     }
+// }
+//
+// const cambiarCamara = async () => {
+//     try {
+//         await cambiarCamaraUtil({
+//             dialogCamara,
+//             camaraSeleccionada,
+//             streamCamara,
+//             videoRef
+//         })
+//     } catch (err) {
+//         console.error('Error al cambiar cámara:', err)
+//         error('No se pudo cambiar la cámara')
+//     }
+// }
+//
+// const tomarFoto = () => {
+//     try {
+//         tomarFotoUtil({
+//             videoRef,
+//             canvasRef,
+//             form
+//         })
+//
+//         cerrarCamara()
+//     } catch (err) {
+//         console.error('Error al tomar fotografía:', err)
+//         error('No se pudo capturar la fotografía')
+//     }
+// }
+//
+// const cerrarCamara = () => {
+//     cerrarCamaraUtil({
+//         streamCamara,
+//         dialogCamara
+//     })
+// }
+//
+// const eliminarFotografia = () => {
+//     eliminarFotografiaUtil({
+//         form
+//     })
+// }
 
 const obtenerPayloadActualizacion = () => {
+    // FUNCIONALIDAD FACIAL DESHABILITADA: excluir cualquier fotografía/rostro heredado del registro existente.
+    const {
+        fotografia: _fotografia,
+        foto: _foto,
+        rostro: _rostro,
+        ...formSinRostro
+    } = form.value
+
     return {
-        ...form.value,
+        // ...form.value,
+        ...formSinRostro,
         id_afiliado: form.value.id,
         id_tipo_solicitud: props.idTipoSolicitud,
         numero_documento: limpiarDpi(form.value.numero_documento),
@@ -1142,8 +1165,11 @@ const guardar = async () => {
             return
         }
 
-        if (!form.value.fotografia || !form.value.huella) {
-            error('Datos biométricos incompletos. Se requiere una fotografía y una huella.')
+        // FUNCIONALIDAD FACIAL DESHABILITADA:
+        // if (!form.value.fotografia || !form.value.huella) {
+        if (!form.value.huella) {
+            // error('Datos biométricos incompletos. Se requiere una fotografía y una huella.')
+            error('Datos biométricos incompletos. Se requiere una huella.')
             return
         }
 

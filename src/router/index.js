@@ -9,7 +9,8 @@ import solicitudInscripcion from '../views/Menus/solicitudInscripcion.vue'
 import AprobacionSolicitud from '../views/formularios/AprobacionSolicitud.vue'
 import ResumenSolicitudes from '../views/dashboard/solicitudes.vue'
 import Validacionhuella from '../views/formularios/validacionBiometrica.vue'
-import ValidacionRostro from '../views/formularios/biometriaRostro.vue'
+// FUNCIONALIDAD FACIAL DESHABILITADA:
+// import ValidacionRostro from '../views/formularios/biometriaRostro.vue'
 import GestionEventos from '../views/formularios/CrearEvento.vue'
 import RegistrarAsistencia from '../views/formularios/RegistrarAsistencia.vue'
 import ConsultaRENAP from '../views/formularios/RenapConsulta.vue'
@@ -58,11 +59,12 @@ const routes = [
         name: 'Validacionhuella',
         component: Validacionhuella
       },
-      {
-        path: '/biometria/verificacion_rostro',
-        name: 'Validacionrostro',
-        component: ValidacionRostro
-      },
+      // FUNCIONALIDAD FACIAL DESHABILITADA:
+      // {
+      //   path: '/biometria/verificacion_rostro',
+      //   name: 'Validacionrostro',
+      //   component: ValidacionRostro
+      // },
       {
         path: '/eventos/gestion_eventos',
         name: 'GestionEventos',
