@@ -2,6 +2,7 @@ import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import http from '../api/nodohttp'
 import { endpoints } from '../api/endpoints'
+import { useAuthStore } from '../stores/auth'
 
 // Estado compartido
 const modulos = ref([])
@@ -13,6 +14,21 @@ const menuInicializado = ref(false)
 const cargando = ref(false)
 const menuCargado = ref(false)
 const popstateRegistrado = ref(false)
+// Sesión (refresh token) a la que pertenece el menú cargado. El estado es global y
+// sobrevive al logout; sin esto, otro usuario que entrara sin recargar la página
+// veía el menú del usuario anterior.
+const sesionMenu = ref(null)
+
+const reiniciarMenu = () => {
+  modulos.value = []
+  historial.value = []
+  itemsActuales.value = []
+  busqueda.value = ''
+  tituloNivelActual.value = 'Módulos'
+  menuInicializado.value = false
+  menuCargado.value = false
+  sesionMenu.value = null
+}
 
 const tieneHijos = (item) => Array.isArray(item?.children) && item.children.length > 0
 const esRutaValida = (item) => item?.id_menu === 3 && !!item?.path
@@ -176,16 +192,28 @@ watch(modulos, () => {
 
 export function useMenu() {
   const router = useRouter()
+  const authStore = useAuthStore()
 
   const cargarMenu = async (forzar = false) => {
+    const sesionActual = authStore.refreshToken
+
+    if (sesionMenu.value !== sesionActual) {
+      reiniciarMenu()
+    }
+
     if ((menuCargado.value && !forzar) || cargando.value) return
 
     try {
       cargando.value = true
 
       const response = await http.get(endpoints.auth.perfil)
+
+      // si la sesión cambió mientras llegaba la respuesta, se descarta
+      if (authStore.refreshToken !== sesionActual) return
+
       modulos.value = normalizarMenu(response.data?.data || [])
       menuCargado.value = true
+      sesionMenu.value = sesionActual
       restaurarDesdeURL()
     } catch (error) {
       console.error('Error al cargar menú:', error)
@@ -267,6 +295,7 @@ const seleccionarItem = (item) => {
     cargando,
     cargarMenu,
     inicializarMenu,
+    reiniciarMenu,
     seleccionarItem,
     volverNivel,
     volverInicio,

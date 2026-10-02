@@ -2,7 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import LandingPage from '../views/landing/LandingPage.vue'
 import LoginView from '../views/auth/LoginView.vue'
 import UsuariosView from '../views/usuarios/UsuariosView.vue'
-import { useAuthStore } from '../stores/auth'
+import { sesionActiva } from '../api/nodohttp'
 import UsuariosHome from '../views/usuarios/UsuariosHome.vue'
 import crud from '../views/usuarios/crud.vue'
 import solicitudInscripcion from '../views/Menus/solicitudInscripcion.vue'
@@ -97,22 +97,23 @@ const router = createRouter({
 })
 
 router.beforeEach(async (to) => {
-  const authStore = useAuthStore()
   const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
-  const token = authStore.token
 
-
-  if (requiresAuth) {
-    if (!token) {
-      return { name: 'login' }
-    }
-
+  if (!requiresAuth && to.name !== 'login') {
+    return true
   }
 
-  if (to.name === 'login' && token) {
+  // Antes solo se revisaba que existiera un token en localStorage, aunque estuviera
+  // vencido; por eso "Iniciar sesión" mandaba directo al dashboard con una sesión
+  // muerta. Ahora se valida (y si hace falta se renueva) antes de decidir.
+  const activa = await sesionActiva()
 
+  if (requiresAuth && !activa) {
+    return { name: 'login' }
+  }
+
+  if (to.name === 'login' && activa) {
     return { name: 'menu' }
-
   }
 
   return true

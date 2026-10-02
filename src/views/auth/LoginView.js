@@ -34,12 +34,9 @@ export function useLogin() {
       fecha_nacimiento: null
     })
 
-    console.log("LOGIN", response);
-
     const token = response?.data?.data?.accessToken
     const data = response?.data?.data
     const mensaje = response?.data?.mensaje
-    
 
     closeAlert()
 
@@ -47,17 +44,19 @@ export function useLogin() {
       error(mensaje || 'Error al iniciar sesión')
       return
     }
-    console.log("DATA", data);
+
     success(`Bienvenido a BioSys ${data.nickname}`);
-    // guardar token
-    
+
     authStore.setAuthData(data)
 
     router.push('/usuarios')
 
-  } catch (error) {
-    error('valide conexión e intente de nuevo')
-    
+  } catch (err) {
+    // antes el parámetro se llamaba "error" y tapaba la función error() de useAlert:
+    // el catch lanzaba TypeError y el alert de carga quedaba abierto
+    closeAlert()
+    console.error('Error en login:', err?.response?.data || err?.message)
+    error('Valide su conexión e intente de nuevo')
   } finally {
     loading.value = false
   }

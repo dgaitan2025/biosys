@@ -4,62 +4,85 @@ import { useRouter } from 'vue-router'
 import http from '../api/nodohttp'
 import { endpoints } from '../api/endpoints'
 
+const STORAGE_KEY = 'datosUsuario'
+
+const leerStorage = () => {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY)
+    return stored ? JSON.parse(stored) : null
+  } catch (error) {
+    return null
+  }
+}
+
 export const useAuthStore = defineStore('auth', () => {
   const router = useRouter()
 
-  const stored = localStorage.getItem('datosUsuario')
-
-  const datos = ref(stored ? JSON.parse(stored) : null)
-  const token = ref(datos.value?.accessToken || null)
-  const user = ref(datos.value?.nickname || null)
-  const rol = ref(datos.value?.rol || null)
-  const refreshToken = ref(datos.value?.refreshToken || null)
-  const fotografia = ref(datos.value?.fotografia || null)
-
+  const datos = ref(null)
+  const token = ref(null)
+  const user = ref(null)
+  const rol = ref(null)
+  const refreshToken = ref(null)
+  const fotografia = ref(null)
 
   const isAuthenticated = computed(() => !!token.value)
 
-  const setAuthData = (data) => {
+  const aplicarDatos = (data) => {
     datos.value = data
     token.value = data?.accessToken || null
     user.value = data?.nickname || null
     rol.value = data?.rol || null
     refreshToken.value = data?.refreshToken || null
-    fotografia.value = data?.fotografia
-
-    localStorage.setItem('datosUsuario', JSON.stringify(data))
+    fotografia.value = data?.fotografia || null
   }
 
- const logout = async () => {
-  try {
-    if (refreshToken.value) {
-      await http.post(endpoints.auth.logout, {
-        refreshToken: refreshToken.value
-      })
-    }
-  } catch (error) {
-    console.error('Error en logout:', error?.response?.data || error.message)
-  } finally {
-    datos.value = null
-    token.value = null
-    user.value = null
-    refreshToken.value = null
+  aplicarDatos(leerStorage())
 
-    localStorage.removeItem('datosUsuario')
+  // Mantiene sincronizadas las pestañas abiertas: si otra pestaña renueva el token,
+  // cierra sesión o inicia con otro usuario, esta usa los mismos datos y no un
+  // refresh token que ya fue revocado.
+  window.addEventListener('storage', (event) => {
+    if (event.key === STORAGE_KEY || event.key === null) {
+      aplicarDatos(leerStorage())
+    }
+  })
+
+  const setAuthData = (data) => {
+    aplicarDatos(data)
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
+  }
+
+  // Borra la sesión solo en el navegador (sin llamar al servidor)
+  const clearSession = () => {
+    aplicarDatos(null)
+
+    localStorage.removeItem(STORAGE_KEY)
     localStorage.removeItem('token')
     localStorage.removeItem('refreshToken')
-
-    router.push('/login')
   }
-}
+
+  const logout = async () => {
+    try {
+      if (refreshToken.value) {
+        await http.post(endpoints.auth.logout, {
+          refreshToken: refreshToken.value
+        })
+      }
+    } catch (error) {
+      console.error('Error en logout:', error?.response?.data || error.message)
+    } finally {
+      clearSession()
+      router?.push('/login')
+    }
+  }
 
   const updateAccessToken = (newToken) => {
-  token.value = newToken
-  if (datos.value) {
-    datos.value.accessToken = newToken
-    localStorage.setItem('datosUsuario', JSON.stringify(datos.value))
+    token.value = newToken
+    if (datos.value) {
+      datos.value.accessToken = newToken
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(datos.value))
+    }
   }
-}
 
   return {
     datos,
@@ -70,6 +93,7 @@ export const useAuthStore = defineStore('auth', () => {
     fotografia,
     isAuthenticated,
     setAuthData,
+    clearSession,
     logout,
     updateAccessToken
   }

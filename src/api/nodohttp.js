@@ -3,11 +3,17 @@ import { useAuthStore } from '../stores/auth'
 import { endpoints } from './endpoints'
 import router from '../router'
 
+// URLs configurables por variables de entorno de Vite (ver .env.example).
+// En Docker se compilan vacías: el front y los APIs quedan en el mismo origen
+// y nginx redirige /seguridad, /biosys y /api a cada contenedor.
+// Otras URLs usadas: https://seguridadbiosys.somee.com, https://biosyssecure.onrender.com,
+// http://biosysapi.somee.com, https://biosyssol.onrender.com
+const SEGURIDAD_URL = import.meta.env.VITE_SEGURIDAD_URL ?? 'http://localhost:5224'
+const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:5041'
+const HUELLA_URL = import.meta.env.VITE_HUELLA_URL ?? 'http://localhost:5056'
+
 const http = axios.create({
-  baseURL: 'https://seguridadbiosys.somee.com',
-  //baseURL: 'http://localhost:5224',
-  //baseURL: 'https://seguridadbiosys.somee.com/',
-  //baseURL: 'https://biosyssecure.onrender.com',
+  baseURL: SEGURIDAD_URL,
   timeout: 90000,
   headers: {
     'Content-Type': 'application/json'
@@ -15,7 +21,7 @@ const http = axios.create({
 })
 
 const httpshuella = axios.create({
-  baseURL: 'http://localhost:5056',
+  baseURL: HUELLA_URL,
   timeout: 180000,
   headers: {
     'Content-Type': 'application/json'
@@ -23,9 +29,7 @@ const httpshuella = axios.create({
 })
 
 const httpcat = axios.create({
-  baseURL: 'http://biosysapi.somee.com',
-  //baseURL: 'http://localhost:5041',
-  //baseURL: 'https://biosyssol.onrender.com',
+  baseURL: API_URL,
   timeout: 90000,
   headers: {
     'Content-Type': 'application/json'
@@ -33,57 +37,81 @@ const httpcat = axios.create({
 })
 
 const httpsol = axios.create({
-  baseURL: 'http://biosysapi.somee.com',
-  //baseURL: 'http://localhost:5041',
-  //baseURL: 'https://biosyssol.onrender.com',
-  //baseURL: 'https://biosyssol.onrender.com',
+  baseURL: API_URL,
   timeout: 90000,
   headers: {
     'Content-Type': 'application/json'
   }
 })
 
+// Cliente sin interceptores: así una falla del refresh no dispara otro refresh
 const refreshClient = axios.create({
-  baseURL: 'https://seguridadbiosys.somee.com',
-  //baseURL: 'http://localhost:5224',
-  //baseURL: 'https://seguridadbiosys.somee.com/',
-  //baseURL: 'https://biosyssecure.onrender.com',
+  baseURL: SEGURIDAD_URL,
   timeout: 90000,
   headers: {
     'Content-Type': 'application/json'
   }
 })
+
+const rutasPublicas = [
+  endpoints.auth.login,
+  endpoints.auth.refresh,
+  endpoints.auth.logout
+]
+
+const esRutaPublica = (url) => rutasPublicas.some((ruta) => url?.includes(ruta))
+
+// Se renueva un poco antes del vencimiento para que el token no expire
+// mientras la petición va en camino.
+const MARGEN_EXPIRACION_MS = 30 * 1000
 
 let refreshPromise = null
+
+// El payload de un JWT viene en base64url ('-' y '_', sin padding); atob solo
+// entiende base64 normal y fallaba con algunos tokens, marcándolos como vencidos.
+const leerPayload = (token) => {
+  const base64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')
+  const conPadding = base64 + '='.repeat((4 - (base64.length % 4)) % 4)
+  return JSON.parse(atob(conPadding))
+}
 
 const tokenExpirado = (token) => {
   if (!token) return true
 
   try {
-    const payloadBase64 = token.split('.')[1]
-    const payload = JSON.parse(atob(payloadBase64))
-    const exp = payload.exp * 1000
-
-    return Date.now() >= exp
+    const exp = leerPayload(token).exp * 1000
+    return Date.now() >= exp - MARGEN_EXPIRACION_MS
   } catch (error) {
     return true
   }
 }
 
-const cerrarSesion = async () => {
+const errorSesionExpirada = (mensaje) => {
+  const err = new Error(mensaje)
+  err.sesionExpirada = true
+  return err
+}
+
+// Limpia la sesión local y manda al login (sin llamar al servidor:
+// si llegamos aquí el refresh token ya no es válido).
+const finalizarSesion = () => {
   const authStore = useAuthStore()
-  await authStore.logout()
-  router.push('/login')
+  authStore.clearSession()
+
+  if (router.currentRoute.value.name !== 'login') {
+    router.push('/login')
+  }
 }
 
 const renovarToken = async () => {
   const authStore = useAuthStore()
 
   if (!authStore.refreshToken) {
-    await cerrarSesion()
-    throw new Error('No existe refresh token')
+    authStore.clearSession()
+    throw errorSesionExpirada('No existe refresh token')
   }
 
+  // Un solo refresh a la vez: las peticiones simultáneas esperan el mismo resultado
   if (!refreshPromise) {
     refreshPromise = (async () => {
       try {
@@ -94,9 +122,13 @@ const renovarToken = async () => {
         const newToken = res?.data?.data?.accessToken
 
         if (!newToken) {
-          console.error('Refresh falló: no se recibió accessToken')
-          await cerrarSesion()
-          throw new Error('Sesión expirada')
+          // codigo 401 = refresh vencido/revocado. Cualquier otro código es un error
+          // del servidor y no debe cerrar la sesión del usuario.
+          if (res?.data?.codigo === 401) {
+            authStore.clearSession()
+            throw errorSesionExpirada('Sesión expirada')
+          }
+          throw new Error(res?.data?.mensaje || 'No se pudo renovar la sesión')
         }
 
         authStore.updateAccessToken(newToken)
@@ -115,8 +147,7 @@ const asegurarSesion = async () => {
   const token = authStore.token
 
   if (!token) {
-    await cerrarSesion()
-    throw new Error('No existe access token')
+    throw errorSesionExpirada('No existe access token')
   }
 
   if (!tokenExpirado(token)) {
@@ -126,129 +157,75 @@ const asegurarSesion = async () => {
   return await renovarToken()
 }
 
+// Usada por el router: true si hay sesión utilizable (renovándola si hace falta)
+const sesionActiva = async () => {
+  const authStore = useAuthStore()
+  if (!authStore.token && !authStore.refreshToken) return false
+
+  try {
+    await asegurarSesion()
+    return true
+  } catch (error) {
+    if (error.sesionExpirada) {
+      authStore.clearSession()
+      return false
+    }
+    // Error de red/servidor: se conserva la sesión, las peticiones lo reintentarán
+    return !!authStore.token
+  }
+}
+
 const agregarTokenARequest = async (config) => {
-  const token = await asegurarSesion()
+  if (esRutaPublica(config.url)) return config
 
-  config.headers = config.headers || {}
-  config.headers.Authorization = `Bearer ${token}`
-
-  console.log('URL:', `${config.baseURL || ''}${config.url || ''}`)
-  console.log('TOKEN ENVIADO:', token)
-  console.log('HEADERS:', config.headers)
-
-  return config
+  try {
+    const token = await asegurarSesion()
+    config.headers = config.headers || {}
+    config.headers.Authorization = `Bearer ${token}`
+    return config
+  } catch (error) {
+    if (error.sesionExpirada) finalizarSesion()
+    throw error
+  }
 }
 
 const manejarErrorAutenticacion = async (error, clienteAxios) => {
   const originalRequest = error.config
 
-  if (!error.response) {
+  if (!error.response || !originalRequest) {
     return Promise.reject(error)
   }
 
   const status = error.response.status
-  const isRefreshRequest = originalRequest?.url?.includes('/seguridad/api/auth/refresh')
 
-  if (status === 401 && isRefreshRequest) {
-    await cerrarSesion()
+  if (status !== 401 || esRutaPublica(originalRequest.url) || originalRequest._retry) {
     return Promise.reject(error)
   }
 
-  if (status === 401 && !originalRequest._retry) {
-    originalRequest._retry = true
+  // El servidor rechazó el token (p. ej. reloj desfasado o token revocado): se renueva y
+  // se reintenta una sola vez
+  originalRequest._retry = true
 
-    try {
-      const newToken = await renovarToken()
+  try {
+    const newToken = await renovarToken()
 
-      originalRequest.headers = originalRequest.headers || {}
-      originalRequest.headers.Authorization = `Bearer ${newToken}`
+    originalRequest.headers = originalRequest.headers || {}
+    originalRequest.headers.Authorization = `Bearer ${newToken}`
 
-      return clienteAxios(originalRequest)
-    } catch (err) {
-      await cerrarSesion()
-      return Promise.reject(err)
-    }
+    return clienteAxios(originalRequest)
+  } catch (err) {
+    if (err.sesionExpirada) finalizarSesion()
+    return Promise.reject(err)
   }
-
-  return Promise.reject(error)
 }
 
-/* =========================
-   INTERCEPTOR REQUEST HTTP
-   ========================= */
-http.interceptors.request.use(
-  async (config) => {
-    const authStore = useAuthStore()
-    let token = authStore.token
+for (const cliente of [http, httpcat, httpsol]) {
+  cliente.interceptors.request.use(agregarTokenARequest, (error) => Promise.reject(error))
+  cliente.interceptors.response.use(
+    (response) => response,
+    (error) => manejarErrorAutenticacion(error, cliente)
+  )
+}
 
-    const rutasPublicas = [
-      '/seguridad/api/auth/login',
-      '/seguridad/api/auth/refresh',
-      '/seguridad/api/auth/logout'
-    ]
-
-    const esPublica = rutasPublicas.some((ruta) =>
-      config.url?.includes(ruta)
-    )
-
-    if (!esPublica) {
-      if (!token) {
-        await cerrarSesion()
-        return Promise.reject(new Error('No existe access token'))
-      }
-
-      if (tokenExpirado(token)) {
-        token = await renovarToken()
-      }
-
-      config.headers = config.headers || {}
-      config.headers.Authorization = `Bearer ${token}`
-    }
-
-    return config
-  },
-  (error) => Promise.reject(error)
-)
-
-/* ==========================
-   INTERCEPTOR RESPONSE HTTP
-   ========================== */
-http.interceptors.response.use(
-  (response) => response,
-  (error) => manejarErrorAutenticacion(error, http)
-)
-
-/* =============================
-   INTERCEPTOR REQUEST HTTPCAT
-   ============================= */
-httpcat.interceptors.request.use(
-  agregarTokenARequest,
-  (error) => Promise.reject(error)
-)
-
-/* ==============================
-   INTERCEPTOR RESPONSE HTTPCAT
-   ============================== */
-httpcat.interceptors.response.use(
-  (response) => response,
-  (error) => manejarErrorAutenticacion(error, httpcat)
-)
-
-/* =============================
-   INTERCEPTOR REQUEST HTTPSOL
-   ============================= */
-httpsol.interceptors.request.use(
-  agregarTokenARequest,
-  (error) => Promise.reject(error)
-)
-
-/* ==============================
-   INTERCEPTOR RESPONSE HTTPSOL
-   ============================== */
-httpsol.interceptors.response.use(
-  (response) => response,
-  (error) => manejarErrorAutenticacion(error, httpsol)
-)
-
-export { http, httpcat, httpsol, httpshuella }
+export { http, httpcat, httpsol, httpshuella, sesionActiva, tokenExpirado }
 export default http
